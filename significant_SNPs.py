@@ -10,7 +10,9 @@ import gzip
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
 import subprocess as sp
+import multiprocessing as mp
 import matplotlib.pyplot as plt
+
 
 # read in gzipped data file from UK biobank and mark that file with the
 # appropriate sex
@@ -23,13 +25,10 @@ def read_file(filename):
 
 # combine dataframes with the same phenotype code for simplicity
 def combine_sameID(ID):
-    cmd = "find . -maxdepth 1 -name \"" + ID + "*\" > temp.txt"
-    sp.call(cmd, shell=True)
+    substr = ID + ".gwas.imputed_v3"
+    files = [x for x in filenames if x.startswith(substr)]
     dataframes = []
-    with open("temp.txt", "r") as fp:
-        filenames = fp.readlines()
-    filenames = [x.strip() for x in filenames]
-    for file in filenames:
+    for file in files:
         dataframes.append(read_file(file))
     complete_df = pd.concat(dataframes)
     return complete_df
@@ -59,6 +58,8 @@ def write(dataframe, ID):
 # put all smaller steps together to run on each ID, return the number of
 # significant SNPs in the file for density plot
 def run(ID):
+    prnt = "running " + str(ID)
+    print(prnt)
     data = combine_sameID(ID)
     data = adjust_pvalue(data)
     significant_SNPs = get_significantSNPs(data)
@@ -67,18 +68,14 @@ def run(ID):
 
 # get list of IDs from excel file
 UK_biobank = pd.read_excel("~/Downloads/UK_biobank.xlsx", sheet_name = 1)
+filenames = UK_biobank.File.tolist()
 IDs = UK_biobank["Phenotype Code"].tolist()
-IDs = IDs[22:401]
+IDs = IDs[22:]
 IDs = [x for x in IDs if "irnt" not in str(x)]
 IDs = list(dict.fromkeys(IDs))
 
+
 if __name__ == '__main__':
-    num_SNPs = []
-    for ID in IDs:
-        num_SNPs.append(run(ID))
-    fig = plt.figure()
-    plt.hist(num_SNPs)
-    fig.suptitle('Significant SNPs', fontsize=20)
-    plt.xlabel('Number of significant SNPs', fontsize=18)
-    plt.ylabel('Frequency', fontsize=16)
-    fig.savefig('firstbatch_densityplot.jpg')
+    pool = mp.Pool(processes=3)
+    num_SNPs = pool.map(run, IDs)
+    pd.Series(num_SNPs).to_csv("numSNPs.csv", header=False)
