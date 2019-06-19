@@ -69,13 +69,18 @@ def run(ID):
 # get list of IDs from excel file
 UK_biobank = pd.read_excel("~/Downloads/UK_biobank.xlsx", sheet_name = 1)
 filenames = UK_biobank.File.tolist()
+already_downloaded = pd.read_csv("alreadydownloaded.txt", header=None)
+already_downloaded = already_downloaded[0].tolist()
+alreadydownloaded_IDs = [x[:x.rfind('_')] for x in already_downloaded]
+
 IDs = UK_biobank["Phenotype Code"].tolist()
 IDs = IDs[22:]
 IDs = [x for x in IDs if "irnt" not in str(x)]
 IDs = list(dict.fromkeys(IDs))
+IDs = [x for x in IDs if x not in alreadydownloaded_IDs]
 
 
 if __name__ == '__main__':
-    pool = mp.Pool(processes=3)
+    pool = mp.Pool(processes=2)
     num_SNPs = pool.map(run, IDs)
     pd.Series(num_SNPs).to_csv("numSNPs.csv", header=False)
