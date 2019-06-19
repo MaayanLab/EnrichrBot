@@ -42,7 +42,7 @@
 20001_1065  thyroid cancer
 20001_1068  sarcoma
 20002_1068  fibrosarcoma
-20001_1072  cin-cancer cells cervix
+20002_1072  cervical intra-epithelial neoplasia
 20001_1072  pre-cancer cells cervix
 20001_1073  rodent ulcer
 20001_99999 unclassifiable
