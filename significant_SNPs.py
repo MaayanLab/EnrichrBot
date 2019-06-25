@@ -25,7 +25,7 @@ def read_file(filename):
 
 # combine dataframes with the same phenotype code for simplicity
 def combine_sameID(ID):
-    substr = ID + ".gwas.imputed_v3"
+    substr = str(ID) + ".gwas.imputed_v3"
     files = [x for x in filenames if x.startswith(substr)]
     dataframes = []
     for file in files:
@@ -52,14 +52,13 @@ def get_significantSNPs(data):
 # write the significant SNPs and their associated information to a new datafile
 # that will be easier to work with during analysis
 def write(dataframe, ID):
-    outfile = "sigSNPs/" + ID + "_signifSNPs.csv"
+    outfile = "sigSNPs/" + str(ID) + "_signifSNPs.csv"
     dataframe.to_csv(outfile, sep='\t', index=False)
 
 # put all smaller steps together to run on each ID, return the number of
 # significant SNPs in the file for density plot
 def run(ID):
-    prnt = "running " + str(ID)
-    print(prnt)
+    print("running ", str(ID))
     data = combine_sameID(ID)
     data = adjust_pvalue(data)
     significant_SNPs = get_significantSNPs(data)
@@ -69,10 +68,13 @@ def run(ID):
 # get list of IDs from excel file
 UK_biobank = pd.read_excel("~/Downloads/UK_biobank.xlsx", sheet_name = 1)
 filenames = UK_biobank.File.tolist()
+already_downloaded = pd.read_csv("alreadydownloaded.txt", header=None)
+already_downloaded = [x[:x.rfind('_')] for x in already_downloaded[0].tolist()]
 IDs = UK_biobank["Phenotype Code"].tolist()
 IDs = IDs[22:]
 IDs = [x for x in IDs if "irnt" not in str(x)]
 IDs = list(dict.fromkeys(IDs))
+IDs = [x for x in IDs if x not in already_downloaded]
 
 if __name__ == '__main__':
     pool = mp.Pool(processes=2)
