@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import multiprocessing as mp
 import gzip
 
 """
@@ -44,7 +45,7 @@ def per_chromosome(data, chr_num):
     df["Distance"] = abs(df["txStart"] - data.pos)
     df["Sex"] = data.Sex
     df = df.merge(hg19_chrom[['txStart', 'gene_ID']], on=['txStart'])
-    df.drop_duplicates(subset=["SNP_location", "Sex"], keep="first", inplace=True)
+    df.drop_duplicates(subset=["SNP_location", "SNP", "Sex"], keep="first", inplace=True)
     del hg19_chrom
 
     return df
@@ -53,7 +54,7 @@ def per_chromosome(data, chr_num):
     write dataframe to a file
 """
 def write(filename, dataframe):
-    outfile = filename[:filename.rfind('.')] + '_genes.csv'
+    outfile = '/Volumes/My Book/AHS_projectdata/geneSets/' + filename[:filename.rfind('.')] + '_genes.csv'
     dataframe.to_csv(outfile, sep='\t', index=False)
 
 """
@@ -61,6 +62,9 @@ def write(filename, dataframe):
 """
 def run(filename):
     data = read_file(filename)
+    if data.shape[0] == 0:
+        write(filename, data)
+        return
     data = reformat_data(data)
     by_chrom = data.groupby("chrom")
     dataframes = []
@@ -87,6 +91,7 @@ hg19 = hg19.loc[hg19["source"] == "protein_coding"]
 with open("significantSNPfiles.txt", "r") as fp:
     filenames = fp.readlines()
 filenames = [x.strip() for x in filenames]
+
 
 if __name__ == '__main__':
     pool = mp.Pool(processes=5)
