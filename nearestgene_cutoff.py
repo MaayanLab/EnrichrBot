@@ -45,23 +45,12 @@ def per_chromosome(data, chr_num, ucutoff, dcutoff):
     df["txStart"] = [np.array(hg19_chrom.txStart)[np.abs(np.array(hg19_chrom.txStart) - i).argmin()] for i in np.array(data.pos)]
     df["Distance"] = df["txStart"] - data.pos
     df["Sex"] = data.Sex
+    df["BH"] = data.BH
+    df["Bonferroni"] = data.Bonferroni
     df = df.merge(hg19_chrom[['txStart', 'strand', 'gene_ID']], on=['txStart'])
-    plus = df.loc[df.strand == '+']
-    minus = df.loc[df.strand == '-']
-    if ucutoff != np.inf and dcutoff != np.inf:
-        pos_strand = plus.loc[(df.Distance <= ucutoff) & (abs(df.Distance) <= dcutoff)]
-        neg_strand = minus.loc[(df.Distance <= dcutoff) & (abs(df.Distance) <= ucutoff)]
-        df = pd.concat([pos_strand, neg_strand])
-    elif ucutoff == np.inf and dcutoff != np.inf:
-        pos_strand = plus.loc[abs(df.Distance) <= dcutoff]
-        neg_strand = minus.loc[df.Distance <= dcutoff]
-        df = pd.concat([pos_strand, neg_strand])
-    elif ucutoff != np.inf and dcutoff == np.inf:
-        pos_strand = plus.loc[df.Distance <= ucutoff]
-        neg_strand = minus.loc[abs(df.Distance) <= ucutoff]
-        df = pd.concat([pos_strand, neg_strand])
-    else:
-        df = df
+    plus_strand = df.loc[(df.strand == '+') & (df.Distance <= ucutoff) & (abs(df.Distance) <= dcutoff)]
+    minus_strand = df.loc[(df.strand == '-') & (df.Distance <= dcutoff) & (abs(df.Distance) <= ucutoff)]
+    df = pd.concat([plus_strand, minus_strand])
     df.drop_duplicates(subset=["SNP_location", "SNP", "Sex"], keep="first", inplace=True)
     del hg19_chrom
 
