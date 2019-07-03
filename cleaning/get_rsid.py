@@ -1,6 +1,8 @@
 import pandas as pd
 import subprocess as sp
 import multiprocessing as mp
+import argparse
+import sys
 
 def reformat(snp):
     lst = snp.split(':')

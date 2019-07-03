@@ -36,22 +36,35 @@ def reformat_data(data):
     gene ID for the gene assigned to the SNP
 """
 def per_chromosome(data, chr_num, ucutoff, dcutoff):
-    hg19_chrom = hg19.copy().loc[hg19.chrom == ('chr' + chr_num)]
+    hg19_chrom = hg19.copy().loc[hg19.chrom == ('chr' + str(chr_num))]
     hg19_chrom.dropna(inplace=True)
 
     df = pd.DataFrame()
-    df["SNP_location"] = data.chrom + ':' + data.pos.map(str)
+    df["SNP_location"] = data.chrom.map(str) + ':' + data.pos.map(str)
     df["SNP"] = data.ref + '/' + data.alt
     df["txStart"] = [np.array(hg19_chrom.txStart)[np.abs(np.array(hg19_chrom.txStart) - i).argmin()] for i in np.array(data.pos)]
-    df["Distance"] = df["txStart"] - data.pos
-    df["Sex"] = data.Sex
-    df["BH"] = data.BH
-    df["Bonferroni"] = data.Bonferroni
-    df = df.merge(hg19_chrom[['txStart', 'strand', 'gene_ID']], on=['txStart'])
-    plus_strand = df.loc[(df.strand == '+') & (df.Distance <= ucutoff) & (abs(df.Distance) <= dcutoff)]
-    minus_strand = df.loc[(df.strand == '-') & (df.Distance <= dcutoff) & (abs(df.Distance) <= ucutoff)]
-    df = pd.concat([plus_strand, minus_strand])
-    df.drop_duplicates(subset=["SNP_location", "SNP", "Sex"], keep="first", inplace=True)
+    df["txEnd"] = [np.array(hg19_chrom.txEnd)[np.abs(np.array(hg19_chrom.txEnd) - i).argmin()] for i in np.array(data.pos)]
+    df["Distance1"] = df["txStart"] - data.pos
+    df["Distance2"] = df["txEnd"] - data.pos
+    df['pval'] = data.pval
+    # df["Sex"] = data.Sex
+    # df["BH"] = data.BH
+    # df["Bonferroni"] = data.Bonferroni
+    start = df.loc[abs(df.Distance1) < abs(df.Distance2)]
+    end = df.loc[abs(df.Distance1) > abs(df.Distance2)]
+    start = start.merge(hg19_chrom[['txStart', 'strand', 'gene_ID']], on=['txStart'])
+    end = end.merge(hg19_chrom[['txEnd', 'strand', 'gene_ID']], on=['txEnd'])
+    df = pd.concat([start, end], sort=False)
+    # df = df.merge(hg19_chrom[['txStart', 'txEnd', 'strand', 'gene_ID']], on=['txStart'])
+    # plus_strand1 = df.loc[(df.strand == '+') & (df.Distance1 <= ucutoff) & (abs(df.Distance1) <= dcutoff)]
+    # minus_strand1 = df.loc[(df.strand == '-') & (df.Distance1 <= dcutoff) & (abs(df.Distance1) <= ucutoff)]
+    #
+    # plus_strand2 = df.loc[(df.strand == '+') & (df.Distance2 <= dcutoff) & (abs(df.Distance2) <= ucutoff)]
+    # minus_strand2 = df.loc[(df.strand == '-') & (df.Distance2 <= ucutoff) & (abs(df.Distance2) <= dcutoff)]
+
+    # df = pd.concat([plus_strand1, minus_strand1])
+    # df.drop_duplicates(subset=["SNP_location", "SNP", "Sex"], keep="first", inplace=True)
+    df.drop_duplicates(subset=["SNP_location", "SNP"], keep="first", inplace=True)
     del hg19_chrom
 
     return df
@@ -71,12 +84,12 @@ def run(filename, ucutoff, dcutoff):
     data = read_file(filename)
     if data.shape[0] == 0:
         return data
-    data = reformat_data(data)
+    # data = reformat_data(data)
     by_chrom = data.groupby("chrom")
     dataframes = []
     for chr, SNPs in by_chrom:
         dataframes.append(per_chromosome(SNPs, chr, ucutoff, dcutoff))
-    nearest_genes = pd.concat(dataframes)
+    nearest_genes = pd.concat(dataframes, sort=False)
     return nearest_genes
 
 """

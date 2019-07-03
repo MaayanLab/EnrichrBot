@@ -68,7 +68,7 @@ def run(ID):
 # get list of IDs from excel file
 UK_biobank = pd.read_excel("~/Downloads/UK_biobank.xlsx", sheet_name = 1)
 filenames = UK_biobank.File.tolist()
-already_downloaded = pd.read_csv("alreadydownloaded3.txt", header=None)
+already_downloaded = pd.read_csv("alreadydownloaded4.txt", header=None)
 already_downloaded = [x[:x.rfind('_')] for x in already_downloaded[0].tolist()]
 IDs = UK_biobank["Phenotype Code"].tolist()
 IDs = IDs[22:]
