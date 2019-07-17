@@ -78,8 +78,8 @@ def get_snps(filename, outfile, cutoff):
     if my_data.shape[0] == 0:
         my_data.to_csv(outfile, index=False, header=True, sep='\t')
         return
-    my_data = reformat_data(my_data)
-    final_data = all_chroms(my_data)
+    final_data = reformat_data(my_data)
+    # final_data = all_chroms(my_data)
     if outfile == "print":
         print(final_data)
     else:
