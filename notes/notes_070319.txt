@@ -1,0 +1,9 @@
+getting significant snps:
+filter out for all snps with original pvalue of < 5e-8
+filter out for non-low confidence variants (column in original data)
+sort remaining snps by pvalue
+loop through chromosomes and make sure neighboring snps are no less than 500kbp apart
+
+choose closest gene based on either the transcription start site or the transcription end site -- the minimum of all of those distances is where the snp gets assigned
+
+perfect overlap with eric's aspirin results (snps and genes)
