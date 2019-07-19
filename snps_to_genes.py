@@ -84,8 +84,12 @@ def per_chromosome(data, chr_num, ucutoff, dcutoff):
     start = df.loc[abs(df.Distance1) < abs(df.Distance2)]
     end = df.loc[abs(df.Distance1) > abs(df.Distance2)]
     start = start.merge(hg19_chrom[['txStart', 'strand', 'gene_ID']], on=['txStart'])
+    plus_strand1 = start.loc[(start.strand == '+') & (start.Distance1 <= ucutoff) & (abs(start.Distance1) <= dcutoff)]
+    minus_strand1 = start.loc[(start.strand == '-') & (start.Distance1 <= dcutoff) & (abs(start.Distance1) <= ucutoff)]
     end = end.merge(hg19_chrom[['txEnd', 'strand', 'gene_ID']], on=['txEnd'])
-    df = pd.concat([start, end], sort=False)
+    plus_strand2 = end.loc[(end.strand == '+') & (end.Distance2 <= ucutoff) & (abs(end.Distance2) <= dcutoff)]
+    minus_strand2 = end.loc[(end.strand == '-') & (end.Distance2 <= dcutoff) & (abs(end.Distance2) <= ucutoff)]
+    df = pd.concat([plus_strand1, minus_strand1, plus_strand2, minus_strand2], sort=False)
     df.drop_duplicates(subset=["SNP_location", "SNP"], keep="first", inplace=True)
     del hg19_chrom
 
