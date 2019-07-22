@@ -39,7 +39,7 @@
     - --pval, -p: p-value cutoff, default is 5e-8
     - --output, -o: path to output file, must specify
 
-**examples**
+### Examples
 To run the GWAS for self-reported asthma (both sexes) with upstream cutoff of 2kbp, downstream cutoff of 0.5kbp, p-value of 5e-7:
 ```shell
 python3 snps_to_genes.py -i your_path/20002_1111.gwas.imputed_v3.both_sexes.tsv.bgz -u 2000 -d 500 -p 5e-7 -o your_path/20002_111.both_sexes.geneset.csv
