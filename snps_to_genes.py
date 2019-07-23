@@ -23,7 +23,7 @@ import pandas as pd
 def get_significant(filename, cutoff):
     with gzip.open(filename) as f:
         df = pd.read_csv(f, sep='\t')
-    df = df.loc[df.pval < 5e-9]
+    df = df.loc[df.pval < cutoff]
     df = df.loc[df['low_confidence_variant'] == False]
     return df
 
