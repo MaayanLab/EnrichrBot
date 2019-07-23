@@ -51,32 +51,24 @@ def reformat_data(data):
     return data
 
 """
-    Eliminate any SNPs within 500kbp of one another
-    Works for a single chromosome
+    Pick out significant SNPs that are no closer than 500kbp away
+    Sorted by pvalue so most significant in close range is kept
 """
-def per_chrom(data):
+def pick_out_snps(data):
+    checked_chroms = {}
+    all_dfs = []
     df = data.copy()
     i = 0
     while i < df.shape[0]:
         curr_snp = df.iloc[i]
         lower = curr_snp.pos - 500000
         upper = curr_snp.pos + 500000
-        df = df.loc[(df.pos < lower) | (df.pos > upper) | (df.pos == curr_snp.pos)]
-        df.reset_index(inplace=True)
+        indexNames = df[(df.chrom == curr_snp.chrom) & (df.pos > lower) & (df.pos < upper) & (df.pos != curr_snp.pos)].index
+        df.drop(indexNames , inplace=True)
+        df.reset_index(inplace = True)
         df.drop(columns=['index'], inplace=True)
         i += 1
     return df
-
-"""
-    Run the method to pick out SNPs for every chromosome in the file
-"""
-def all_chroms(big_df):
-    by_chrom = big_df.groupby(['chrom'])
-    dfs = []
-    for chrom, snps in by_chrom:
-        dfs.append(per_chrom(snps))
-    final_df = pd.concat(dfs, sort=False)
-    return final_df
 
 """
     Put everything together to get the file of significant SNPs
@@ -87,7 +79,7 @@ def get_snps(filename, cutoff):
     if my_data.shape[0] == 0:
         return my_data
     final_data = reformat_data(my_data)
-    final_data = all_chroms(my_data)
+    final_data = pick_out_snps(final_data)
     return final_data
 
 """ obtain desired information for each SNP by finding the closest transcription
