@@ -23,7 +23,7 @@ import pandas as pd
 def get_significant(filename, cutoff):
     with gzip.open(filename) as f:
         df = pd.read_csv(f, sep='\t')
-    df = df.loc[df.pval < cutoff]
+    df = df.loc[df.pval < 5e-9]
     df = df.loc[df['low_confidence_variant'] == False]
     return df
 
@@ -51,6 +51,34 @@ def reformat_data(data):
     return data
 
 """
+    Eliminate any SNPs within 500kbp of one another
+    Works for a single chromosome
+"""
+def per_chrom(data):
+    df = data.copy()
+    i = 0
+    while i < df.shape[0]:
+        curr_snp = df.iloc[i]
+        lower = curr_snp.pos - 500000
+        upper = curr_snp.pos + 500000
+        df = df.loc[(df.pos < lower) | (df.pos > upper) | (df.pos == curr_snp.pos)]
+        df.reset_index(inplace=True)
+        df.drop(columns=['index'], inplace=True)
+        i += 1
+    return df
+
+"""
+    Run the method to pick out SNPs for every chromosome in the file
+"""
+def all_chroms(big_df):
+    by_chrom = big_df.groupby(['chrom'])
+    dfs = []
+    for chrom, snps in by_chrom:
+        dfs.append(per_chrom(snps))
+    final_df = pd.concat(dfs, sort=False)
+    return final_df
+
+"""
     Put everything together to get the file of significant SNPs
 """
 def get_snps(filename, cutoff):
@@ -59,6 +87,7 @@ def get_snps(filename, cutoff):
     if my_data.shape[0] == 0:
         return my_data
     final_data = reformat_data(my_data)
+    final_data = all_chroms(my_data)
     return final_data
 
 """ obtain desired information for each SNP by finding the closest transcription
@@ -130,7 +159,7 @@ def run(filename, ucutoff, dcutoff, pval, outfile):
     rename the columns to be more readable
     only keep protein coding genes
 """
-hg19 = pd.read_csv("data/hg19assembly.dms", sep='\t', header=0, names=["bin", "name", "chrom", "strand", "txStart", "txEnd",
+hg19 = pd.read_csv("/Users/maayanlab/Desktop/EnrichrBot/data/hg19assembly.dms", sep='\t', header=0, names=["bin", "name", "chrom", "strand", "txStart", "txEnd",
 "cdsStart", "cdsEnd", "exonCount", "exonStarts", "exonEnds", "score", "gene_ID", "cdsStartStat", "cdsEndStat", "exonFrames", "source"])
 hg19 = hg19.loc[hg19["source"] == "protein_coding"]
 
