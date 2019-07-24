@@ -1,4 +1,5 @@
 .env
 *.gmt
+results
 tweets
 venv
