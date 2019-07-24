@@ -1,3 +1,15 @@
+#############################################################################################
+# configure environment with .env
+#############################################################################################
+from dotenv import load_dotenv
+load_dotenv()
+
+CONSUMER_KEY = os.environ['CONSUMER_KEY']
+CONSUMER_SECRET = os.environ['CONSUMER_SECRET']
+ACCESS_TOKEN = os.environ['ACCESS_TOKEN']
+ACCESS_TOKEN_SECRET = os.environ['ACCESS_TOKEN_SECRET']
+TWEET_STORAGE_PATH = os.environ['TWEET_STORAGE_PATH']
+
 # Collect tweets from GWASbot's Timeline 
 
 # ***************************************************************
@@ -5,13 +17,10 @@
 # (2) SET 'path' 
 # ***************************************************************
 
-# set path
-path = '/set/your/path/here/out/'
-
 # Examples
-main('SbotGwa', path) # Collect tweets
+main('SbotGwa', TWEET_STORAGE_PATH) # Collect tweets
 
-dic_of_urls = get_Dropbox_link(15, path)
+dic_of_urls = get_Dropbox_link(15, TWEET_STORAGE_PATH)
 
 # if you want to post a reply to the GWASbot bot --> change the first parameter to 'SbotGwa'
 reply_to_GWA('BotEnrichr', 'insert text from Enrichr or a link with results', dic_of_urls[0]['tweet_id'])
@@ -30,9 +39,7 @@ def main(user_name,path):
   from os.path import isfile, join
   #
   # authentication
-  APP_KEY = ''
-  APP_SECRET = ''
-  twitter = Twython(APP_KEY, APP_SECRET, oauth_version=2)
+  twitter = Twython(CONSUMER_KEY, CONSUMER_SECRET, oauth_version=2)
   ACCESS_TOKEN = twitter.obtain_access_token()
   twitter = Twython(APP_KEY, access_token=ACCESS_TOKEN)
   #
@@ -95,13 +102,8 @@ def reply_to_GWA(reply_to_user, text, tweet_id):
   import json
   #
   # authentication
-  access_token = ''
-  access_token_secret = ''
-  consumer_key = '' 
-  consumer_secret = ''
-  #
-  auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-  auth.set_access_token(access_token, access_token_secret)
+  auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+  auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
   api = tweepy.API(auth)
   #
   api.update_status('@' + reply_to_user + " " + text, str(tweet_id)) # post a reply
