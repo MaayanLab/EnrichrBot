@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from twython import Twython, TwythonError
 import os
 import os.path
+import pandas as pd
 import requests
 import time
 import tweepy
@@ -16,7 +17,7 @@ CONSUMER_SECRET = os.environ['CONSUMER_SECRET']
 ACCESS_TOKEN = os.environ['ACCESS_TOKEN']
 ACCESS_TOKEN_SECRET = os.environ['ACCESS_TOKEN_SECRET']
 TWEET_STORAGE_PATH = os.environ['TWEET_STORAGE_PATH']
-LOOKUP_GMT = os.environ['LOOKUP_GMT']
+LOOKUP_RESULTS = os.environ['LOOKUP_RESULTS']
 ENRICHR_URL = os.environ.get('ENRICHR_URL', 'https://amp.pharm.mssm.edu/Enrichr')
 
 #############################################################################################
@@ -63,50 +64,17 @@ def collect_tweets(user_name,path):
 
 # Call the function with: (a) Status text + a link to the photo/ data from Enrichr, and (b) ID of the original tweet.
 
-def reply_to_GWA(reply_to_user, text, tweet_id):
+def reply_to_GWA(reply_to_user, text, screenshot, tweet_id):
   #
   # authentication
   auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
   auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
   api = tweepy.API(auth)
   #
-  api.update_status('@' + reply_to_user + " " + text, str(tweet_id)) # post a reply
-
-#############################################################################################
-# Convert the identifier into a genelist using LOOKUP_GMT
-#############################################################################################
-
-def identifier_to_genes(identifier):
-  # parse the GMT
-  gmt = {
-    line[0].strip(): list(map(str.strip, line[1:]))
-    for line in map(str.split, open(LOOKUP_GMT, 'r'))
-  }
-  # TODO: improve this--this currently is a O(n) operation and not guaranteed to work
-  resolved_identifier, genelist = {
-    k: v
-    for k, v in gmt_parsed.items()
-    if identifier in k
-  }.popitem()
-
-  return genelist
-
-#############################################################################################
-# Submit the genelist to enrichr to get a link
-#############################################################################################
-
-def submit_to_enrichr(genelist=[], description=''):
-  genes_str = '\n'.join(genelist)
-  payload = {
-      'list': (None, genes_str),
-      'description': (None, description)
-  }
-  response = requests.post(ENRICHR_URL + '/addList', files=payload)
-  if not response.ok:
-      raise Exception('Error analyzing gene list')
-  data = json.loads(response.text)
-  enrichr_link = ENRICHR_URL + '/enrich?dataset={}'.format(data['shortId'])
-  return enrichr_link
+  api.update_with_media(
+    screenshot,
+    status='@' + reply_to_user + " " + text, str(tweet_id)
+  ) # post a reply
 
 #############################################################################################
 # Main
@@ -119,9 +87,26 @@ def main():
   latest_file = sorted(os.listdir(path))[-1]
   latest_json = json.load(open(os.path.join(path, latest_file), 'r'))
   # Resolve the identifier from the description (first line, s/ /_/g)
-  identifier = latest_json['text'].splitlines()[0].replace(' ','_')
-  # Process
-  genelist = identifier_to_genes(identifier)
-  enrichr_link = submit_to_enrichr(genelist=genelist, description='BotEnrichr submission: {}'.format(identifier))
-  # Post link as reploy
-  reply_to_GWA('SbotGwa', 'Enrichr link: {}'.format(enrichr_link), latest_json['id_str'])
+  df = pd.read_csv(LOOKUP_RESULTS, sep='\t')
+  matches = df[
+    df['identifier'].map(
+      lambda s, q=latest_json['text'].splitlines()[0].replace(' ','_').lower(): q in s.lower()
+    )
+  ]
+  assert matches.shape[0] == 1
+  # Post link as reply
+  reply_to_GWA(
+    'SbotGwa',
+    # Get the enrichr link
+    'Enrichr link: {}'.format(matches.iloc[0, 'enrichr']),
+    # Get the screenshot file relative to the results file
+    os.path.join(
+      os.path.dirname(LOOKUP_RESULTS),
+      matches.iloc[0, 'screenshot']
+    ),
+    # Get the tweet id for which to reply to
+    latest_json['id_str']
+  )
+
+if __name__ == '__main__':
+  main()
