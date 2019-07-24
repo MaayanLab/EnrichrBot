@@ -1,0 +1,4 @@
+python-dotenv==0.10.3
+requests==2.22.0
+tweepy==3.8.0
+twython==3.7.0
