@@ -106,7 +106,7 @@ def submit_to_enrichr(genelist=[], description=''):
       raise Exception('Error analyzing gene list')
   data = json.loads(response.text)
   enrichr_link = ENRICHR_URL + '/enrich?dataset={}'.format(data['shortId'])
-
+  return enrichr_link
 
 #############################################################################################
 # Main
