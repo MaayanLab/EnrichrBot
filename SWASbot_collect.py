@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from twython import Twython, TwythonError
+import json
 import os
 import os.path
 import pandas as pd
@@ -30,7 +31,7 @@ def collect_tweets(user_name,path):
   # authentication
   twitter = Twython(CONSUMER_KEY, CONSUMER_SECRET, oauth_version=2)
   access_token = twitter.obtain_access_token()
-  twitter = Twython(APP_KEY, access_token=access_token)
+  twitter = Twython(CONSUMER_KEY, access_token=access_token)
   #
   # discover the id of the latest collected tweet 
   onlyfiles = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
@@ -73,7 +74,8 @@ def reply_to_GWA(reply_to_user, text, screenshot, tweet_id):
   #
   api.update_with_media(
     screenshot,
-    status='@' + reply_to_user + " " + text, str(tweet_id)
+    '@' + reply_to_user + " " + text,
+    str(tweet_id)
   ) # post a reply
 
 #############################################################################################
@@ -82,10 +84,10 @@ def reply_to_GWA(reply_to_user, text, screenshot, tweet_id):
 
 def main():
   # Collect tweets from GWASbot's Timeline
-  collect_tweets('SbotGwa', path)
+  collect_tweets('SbotGwa', TWEET_STORAGE_PATH)
   # Get the latest tweet
-  latest_file = sorted(os.listdir(path))[-1]
-  latest_json = json.load(open(os.path.join(path, latest_file), 'r'))
+  latest_file = sorted(os.listdir(TWEET_STORAGE_PATH))[-1]
+  latest_json = json.load(open(os.path.join(TWEET_STORAGE_PATH, latest_file), 'r'))
   # Resolve the identifier from the description (first line, s/ /_/g)
   df = pd.read_csv(LOOKUP_RESULTS, sep='\t')
   matches = df[
