@@ -1,5 +1,3 @@
-# EnrichrBot
-
 # Assigning SNPs from the UK Biobank GWAS to genes for Gene Set Enrichment Analysis
 
 - Author: Allison Seiden
