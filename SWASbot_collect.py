@@ -89,13 +89,12 @@ def main():
   latest_file = sorted(os.listdir(TWEET_STORAGE_PATH))[-1]
   latest_json = json.load(open(os.path.join(TWEET_STORAGE_PATH, latest_file), 'r'))
   # Resolve the identifier from the description (first line, s/ /_/g)
+  identifier = latest_json['text'].splitlines()[0].replace(' ','_').lower()
+  # Look up the identifier in the results
   df = pd.read_csv(LOOKUP_RESULTS, sep='\t')
-  matches = df[
-    df['identifier'].map(
-      lambda s, q=latest_json['text'].splitlines()[0].replace(' ','_').lower(): q in s.lower()
-    )
-  ]
-  assert matches.shape[0] == 1
+  matches = df[df['identifier'].map(lambda s, q=identifier: q in s.lower())]
+  assert matches.shape[0] != 0, "{} not found".format(identifier)
+  assert matches.shape[0] > 1, "{} matched multiple results".format(identifier)
   # Post link as reply
   reply_to_GWA(
     'SbotGwa',
