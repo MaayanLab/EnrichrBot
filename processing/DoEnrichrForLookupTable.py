@@ -60,7 +60,7 @@ def gmt_to_enrichr_results_and_screenshots(lookup_gmt=LOOKUP_GMT, browser=None, 
     sep='\t', index=False
   )
 
-def retake_screenshot(identifier, browser=None, results_dir='results', results_file='results.tsv'):
+def retake_screenshot(identifier, browser=None, results_dir='../results', results_file='results.tsv'):
   ''' Some of the particularly large ones took a screenshot before the page was loaded--this
   function allows you to retake a specific screenshot.
   '''
