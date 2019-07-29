@@ -22,6 +22,7 @@
 - **data:** hg19 assembly for gene assignment
 - **notes:** lab notebook
 - **snps2genes.py:** runs entire pipeline for single file from UK Biobank GWAS
+- **gene_correlation.ipynb:** jupyter notebook for gene-gene correlation validation
 
 
 ### Running snps_to_genes.py
