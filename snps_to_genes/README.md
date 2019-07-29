@@ -21,7 +21,7 @@
 - **cleaning:** code for data cleaning/reformatting through pipeline
 - **data:** hg19 assembly for gene assignment
 - **notes:** lab notebook
-- **snps_to_genes.py:** runs entire pipeline for single file from UK Biobank GWAS
+- **snps2genes.py:** runs entire pipeline for single file from UK Biobank GWAS
 
 
 ### Running snps_to_genes.py
