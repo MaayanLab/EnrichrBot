@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pprint
 
 with open("/Users/maayanlab/Desktop/EnrichrBot/data/geneset_list.txt") as fp:
     files = fp.readlines()
@@ -21,22 +22,21 @@ for file in files:
 df2 = pd.DataFrame()
 for i, key in enumerate(dict):
     df2.loc[i, "Phenotype Code"] = key
-    df2.loc[i, "Genes"] = dict[key]
 
-codes = pd.read_csv("/Users/maayanlab/Downloads/phenotype_codes3.csv", encoding="latin1")
+codes = pd.read_csv("/Users/maayanlab/Downloads/phenotype_codes.csv", encoding="latin1")
 
-complete = df2.merge(codes[['Phenotype Code', 'For GMT']], on=['Phenotype Code'])
-complete = complete[["For GMT", "Genes"]]
-complete = complete.set_index("For GMT")
-df_dict = complete.T.to_dict('list')
+complete = df2.merge(codes[['Phenotype Code', 'For GMT 2']], on=['Phenotype Code'])
 
-f = open("ukbiobank1.gmt", "w")
-for key in df_dict:
-    df_dict[key] = df_dict[key][0]
-    if len(df_dict[key]) < 5:
+final_dict = {}
+for i in range(complete.shape[0]):
+    final_dict[complete.loc[i, "For GMT 2"]] = dict[complete.loc[i, "Phenotype Code"]]
+
+f = open("/Users/maayanlab/Desktop/ukbiobank_p8.gmt", "w")
+for key in final_dict:
+    if len(final_dict[key]) < 5:
         continue
     f.write(str(key + '\t'))
-    for gene in df_dict[key]:
+    for gene in final_dict[key]:
         if gene.startswith('ENSG00'):
             continue
         f.write(str(str(gene) + '\t'))

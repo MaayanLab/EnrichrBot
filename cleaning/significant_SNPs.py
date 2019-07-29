@@ -67,6 +67,22 @@ def all_chroms(big_df):
     final_df = pd.concat(dfs, sort=False)
     return final_df
 
+def pick_out_snps(data):
+    checked_chroms = {}
+    all_dfs = []
+    df = data.copy()
+    i = 0
+    while i < df.shape[0]:
+        curr_snp = df.iloc[i]
+        lower = curr_snp.pos - 500000
+        upper = curr_snp.pos + 500000
+        indexNames = df[(df.chrom == curr_snp.chrom) & (df.pos > lower) & (df.pos < upper) & (df.pos != curr_snp.pos)].index
+        df.drop(indexNames , inplace=True)
+        df.reset_index(inplace = True)
+        df.drop(columns=['index'], inplace=True)
+        i += 1
+    return df
+
 """
     Put everything together to get the file of significant SNPs
 """
@@ -79,7 +95,7 @@ def get_snps(filename, outfile, cutoff):
         my_data.to_csv(outfile, index=False, header=True, sep='\t')
         return
     final_data = reformat_data(my_data)
-    # final_data = all_chroms(my_data)
+    final_data = pick_out_snps(final_data)
     if outfile == "print":
         print(final_data)
     else:
