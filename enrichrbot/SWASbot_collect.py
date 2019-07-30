@@ -4,7 +4,6 @@ import json
 import os
 import os.path
 import pandas as pd
-import requests
 import time
 import tweepy
 
