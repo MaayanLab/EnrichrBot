@@ -1,10 +1,11 @@
 FROM python:3.7.4
 
-ADD . /app
-WORKDIR /app
-
+ADD requirements.txt /app/requirements.txt
 RUN set -x \
   && pip install -r /app/requirements.txt
+
+ADD SWASbot_collect.py /app/SWASbot_collect.py
+WORKDIR /app
 
 ENV CONSUMER_KEY=
 ENV CONSUMER_SECRET=
