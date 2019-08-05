@@ -20,9 +20,11 @@
 
 - **cleaning:** code for data cleaning/reformatting through pipeline
 - **data:** hg19 assembly for gene assignment
+- **gene_assignment:** code for assigning SNPs to genes, used in development of snps2genes
 - **notes:** lab notebook
 - **snps2genes.py:** runs entire pipeline for single file from UK Biobank GWAS
 - **gene_correlation.ipynb:** jupyter notebook for gene-gene correlation validation
+- **geneshot_validation.ipynb:** jupyter notebook for Geneshot validation
 
 
 ### Running snps_to_genes.py
