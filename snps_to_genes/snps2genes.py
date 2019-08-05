@@ -151,7 +151,7 @@ def run(filename, ucutoff, dcutoff, pval, outfile):
     rename the columns to be more readable
     only keep protein coding genes
 """
-hg19 = pd.read_csv("/Users/maayanlab/Desktop/EnrichrBot/data/hg19assembly.dms", sep='\t', header=0, names=["bin", "name", "chrom", "strand", "txStart", "txEnd",
+hg19 = pd.read_csv("snps_to_genes/data/hg19assembly.dms", sep='\t', header=0, names=["bin", "name", "chrom", "strand", "txStart", "txEnd",
 "cdsStart", "cdsEnd", "exonCount", "exonStarts", "exonEnds", "score", "gene_ID", "cdsStartStat", "cdsEndStat", "exonFrames", "source"])
 hg19 = hg19.loc[hg19["source"] == "protein_coding"]
 
