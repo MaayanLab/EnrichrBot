@@ -13,7 +13,7 @@ RUN set -x \
   && curl https://chromedriver.storage.googleapis.com/76.0.3809.68/chromedriver_linux64.zip | bsdtar -xvf - -C /usr/local/bin \
   && chmod +x /usr/local/bin/chromedriver
 
-ADD requirements.standalone_enrichrbot.txt /app/requirements.txt
+ADD requirements.txt /app/requirements.txt
 RUN set -x \
   && echo "Installing python dependencies..." \
   && pip install -r /app/requirements.txt
@@ -21,7 +21,7 @@ RUN set -x \
 USER app
 WORKDIR /app
 
-ADD standalone_enrichrbot.py /app/standalone_enrichrbot.py
+ADD enrichrbot.py /app/enrichrbot.py
 
 ENV CONSUMER_KEY=
 ENV CONSUMER_SECRET=
@@ -35,4 +35,4 @@ ENV CHROME_PATH=/opt/google/chrome/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 VOLUME [ "/data" ]
 
-ENTRYPOINT [ "python", "/app/standalone_enrichrbot.py" ]
+ENTRYPOINT [ "python", "/app/enrichrbot.py" ]

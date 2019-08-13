@@ -1,0 +1,8 @@
+version: '3'
+services:
+  enrichrbot:
+    build: .
+    image: maayanlab/enrichrbot-random-from-preprocessed:1.0.0
+    env_file: .env
+    volumes:
+      - ../../:/data

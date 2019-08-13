@@ -4,7 +4,7 @@ ADD requirements.txt /app/requirements.txt
 RUN set -x \
   && pip install -r /app/requirements.txt
 
-ADD SWASbot_collect.py /app/SWASbot_collect.py
+ADD enrichrbot.py /app/enrichrbot.py
 WORKDIR /app
 
 ENV CONSUMER_KEY=
@@ -18,4 +18,4 @@ ENV ENRICHR_URL=https://amp.pharm.mssm.edu/Enrichr
 
 VOLUME [ "/data" ]
 
-CMD [ "python", "/app/SWASbot_collect.py" ]
+CMD [ "python", "/app/enrichrbot.py" ]
