@@ -35,4 +35,4 @@ ENV CHROME_PATH=/opt/google/chrome/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 VOLUME [ "/data" ]
 
-CMD [ "python", "/app/standalone_enrichrbot.py" ]
+ENTRYPOINT [ "python", "/app/standalone_enrichrbot.py" ]

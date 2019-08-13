@@ -4,9 +4,10 @@ from selenium.webdriver.chrome.options import Options
 import json
 import os
 import random
+import requests
+import sys
 import time
 import tweepy
-import requests
 
 load_dotenv()
 
@@ -148,16 +149,23 @@ def main():
     browser=browser,
   )
   # tweet it!
-  tweet(
-    '{}. Enrichr link: {}'.format(
-      pretty_desc, enrichr_link,
-    ),
-    media=screenshot,
-    consumer_key=CONSUMER_KEY,
-    consumer_secret=CONSUMER_SECRET,
-    access_token=ACCESS_TOKEN,
-    access_token_secret=ACCESS_TOKEN_SECRET,
+  desc = '{}. Randomly selected gene set from Enrichr: {} @MaayanLab #Enrichr #Bioinformatics #BD2K #LINCS @BD2KLINCSDCIC @DruggableGenome #BigData'.format(
+    pretty_desc, enrichr_link,
   )
+
+  if '--dry-run' in sys.argv:
+    print('tweet("{}"#{}, {})'.format(
+      desc, len(pretty_desc), screenshot
+    ))
+  else:
+    tweet(
+      desc,
+      media=screenshot,
+      consumer_key=CONSUMER_KEY,
+      consumer_secret=CONSUMER_SECRET,
+      access_token=ACCESS_TOKEN,
+      access_token_secret=ACCESS_TOKEN_SECRET,
+    )
 
 if __name__ == '__main__':
   main()
