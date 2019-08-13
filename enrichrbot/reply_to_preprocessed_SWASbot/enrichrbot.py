@@ -4,6 +4,7 @@ import json
 import os
 import os.path
 import pandas as pd
+import sys
 import time
 import tweepy
 
@@ -31,6 +32,10 @@ def collect_tweets(user_name,path):
   twitter = Twython(CONSUMER_KEY, CONSUMER_SECRET, oauth_version=2)
   access_token = twitter.obtain_access_token()
   twitter = Twython(CONSUMER_KEY, access_token=access_token)
+  #
+  # Ensure path exists
+  if not os.path.exists(path):
+    os.mkdir(path)
   #
   # discover the id of the latest collected tweet 
   onlyfiles = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
@@ -81,7 +86,7 @@ def reply_to_GWA(reply_to_user, text, screenshot, tweet_id):
 # Main
 #############################################################################################
 
-def main():
+def main(dry_run=False):
   # Collect tweets from GWASbot's Timeline
   collect_tweets('SbotGwa', TWEET_STORAGE_PATH)
   # Get the latest tweet
@@ -95,18 +100,26 @@ def main():
   assert matches.shape[0] != 0, "{} not found".format(identifier)
   assert matches.shape[0] > 1, "{} matched multiple results".format(identifier)
   # Post link as reply
-  reply_to_GWA(
-    'SbotGwa',
-    # Get the enrichr link
-    'Enrichr link: {}'.format(matches.iloc[0, 'enrichr']),
-    # Get the screenshot file relative to the results file
-    os.path.join(
-      os.path.dirname(LOOKUP_RESULTS),
-      matches.iloc[0, 'screenshot']
-    ),
-    # Get the tweet id for which to reply to
-    latest_json['id_str']
+  enrichr_link = matches.iloc[0, 'enrichr']
+  desc = '{}. Enrichr link: {} @MaayanLab #Enrichr #Bioinformatics #BD2K #LINCS @BD2KLINCSDCIC @DruggableGenome #BigData'.format(
+    identifier, enrichr_link,
   )
+  # Get the screenshot file relative to the results file
+  screenshot = os.path.join(
+    os.path.dirname(LOOKUP_RESULTS),
+    matches.iloc[0, 'screenshot']
+  )
+  # Get the tweet id for which to reply to
+  tweet_id = latest_json['id_str']
+  if dry_run:
+    print('reply_to_GWA("SbotGwa", {}, {}, {}, '.format(desc, screenshot, tweet_id))
+  else:
+    reply_to_GWA(
+      'SbotGwa',
+      desc,
+      screenshot,
+      tweet_id,
+    )
 
 if __name__ == '__main__':
-  main()
+  main(dry_run='--dry-run' in sys.argv)

@@ -18,4 +18,4 @@ ENV ENRICHR_URL=https://amp.pharm.mssm.edu/Enrichr
 
 VOLUME [ "/data" ]
 
-CMD [ "python", "/app/enrichrbot.py" ]
+ENTRYPOINT [ "python", "/app/enrichrbot.py" ]
