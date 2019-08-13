@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 import json
 import os
 import random
 import time
 import tweepy
-import urllib.request
+import requests
 
 load_dotenv()
 
@@ -17,7 +18,8 @@ DATA_DIR = os.environ.get('DATA_DIR', 'data')
 ENRICHR_URL = os.environ.get('ENRICHR_URL', 'https://amp.pharm.mssm.edu/Enrichr')
 WHITELIST = json.loads(os.environ.get('WHITELIST', '[]'))
 BLACKLIST = json.loads(os.environ.get('BLACKLIST', '[]'))
-WEBDRIVER_PATH = os.environ.get('WEBDRIVER_PATH', '/usr/local/bin/chromedriver')
+CHROME_PATH = os.environ.get('CHROME_PATH', '/usr/local/bin/google-chrome')
+CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
 
 if not os.path.exists(DATA_DIR):
   os.mkdir(DATA_DIR)
@@ -29,6 +31,7 @@ def tweet(
 ):
   ''' Tweet a message
   '''
+  print('Tweeting message {} with media {}...'.format(message, media))
   auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
   auth.set_access_token(access_token, access_token_secret)
   api = tweepy.API(auth)
@@ -40,10 +43,11 @@ def tweet(
   else:
     api.update_status(message)
 
-def submit_to_enrichr(genelist=[], description=''):
+def submit_to_enrichr(geneset=[], description=''):
   ''' Submit geneset to enrichr
   '''
-  genes_str = '\n'.join(genelist)
+  print('Submitting to enrichr {}...'.format(geneset))
+  genes_str = '\n'.join(geneset)
   payload = {
       'list': (None, genes_str),
       'description': (None, description)
@@ -58,6 +62,7 @@ def submit_to_enrichr(genelist=[], description=''):
 def link_to_screenshot(link=None, output=None, browser=None):
   ''' This goes to a link and takes a screenshot
   '''
+  print('Capturing screenshot...')
   time.sleep(2)
   browser.get(link)
   time.sleep(2)
@@ -66,11 +71,12 @@ def link_to_screenshot(link=None, output=None, browser=None):
 
 def choose_library(whitelist=[], blacklist=[]):
   # obtain library statistics
-  req = urllib.request.urlopen(ENRICHR_URL + '/datasetStatistics')
-  assert req.status == 200
+  print('Fetching library statistics...')
+  req = requests.get(ENRICHR_URL + '/datasetStatistics')
+  assert req.status_code == 200
   stats = [
     stat
-    for stat in json.load(req)['statistics']
+    for stat in req.json()['statistics']
     if (whitelist and stat in whitelist) or (stat not in blacklist)
   ]
   # random library based on a random choice weighted by size of the dataset
@@ -79,29 +85,47 @@ def choose_library(whitelist=[], blacklist=[]):
       *zip(*[
         (ind, stat['numTerms'])
         for ind, stat in enumerate(stats)
-      ])
+        ])
     )[0]
   ]
+  print('Chose a random library: {}'.format(library['libraryName']))
   return library
 
-def fetch_library(libraryName):
+def fetch_library(dataset):
   # download library if we don't already have it
-  if os.path.exists(os.path.join(DATA_DIR, dataset['libraryName'])):
-    req = urllib.request.urlopen(
-      ENRICHR_URL + '/geneSetLibrary?mode=text&libraryName={}'.format(dataset['libraryName'])
+  if not os.path.exists(os.path.join(DATA_DIR, dataset['libraryName'])):
+    print('Fetching {}...'.format(dataset['libraryName']))
+    req = requests.get(
+      ENRICHR_URL + '/geneSetLibrary?mode=text&libraryName={}'.format(dataset['libraryName']),
+      stream=True,
     )
-    assert req.status == 200
-    open(os.path.join(DATA_DIR, dataset['libraryName']), 'w').writelines(req)
+    assert req.status_code == 200
+    open(os.path.join(DATA_DIR, dataset['libraryName']), 'wb').write(req.content)
   return open(os.path.join(DATA_DIR, dataset['libraryName']), 'r')
 
+def init_selenium():
+  print('Initializing selenium...')
+  chrome_options = Options()
+  chrome_options.add_argument('--headless')
+  chrome_options.add_argument('--no-sandbox')
+  chrome_options.add_argument('--window-size=1080,1080')
+  chrome_options.binary_location = CHROME_PATH
+
+  return webdriver.Chrome(
+    executable_path=CHROMEDRIVER_PATH,
+    options=chrome_options,
+  )
+
 def main():
+  # initialize browser
+  browser = init_selenium()
   # choose a random library
   library = choose_library(
     whitelist=WHITELIST,
     blacklist=BLACKLIST,
   )
   # choose a random index based on the number of terms
-  geneset_index = random.randint(0, random.library['numTerms'] - 1)
+  geneset_index = random.randint(0, library['numTerms'] - 1)
   # get the random geneset at the index
   geneset_line = next(iter(
     line
@@ -109,20 +133,19 @@ def main():
     if line_no == geneset_index
   ))
   # parse the geneset line
-  desc, geneset = geneset_line.strip().split('\t\t', maxsplit=1)
+  desc, geneset_str = geneset_line.strip().split('\t\t', maxsplit=1)
+  geneset = geneset_str.split('\t')
   # prettify the description
   pretty_desc = desc.replace('_', ' ')
   # submit the geneset to enrichr
-  enrichr_link = submit_to_enrichr(genelist, 'Enrichr Bot Random Submissions: {}'.format(pretty_desc))
+  enrichr_link = submit_to_enrichr(geneset, 'Enrichr Bot Random Submissions: {}'.format(pretty_desc))
   # obtain a screenshot
   screenshot = link_to_screenshot(
     link=enrichr_link,
     output=os.path.join(DATA_DIR, 'screenshot_{}_{}.png'.format(
-      library, desc,
+      library['libraryName'], desc,
     )),
-    browser=webdriver.Chrome(
-      executable_path=WEBDRIVER_PATH,
-    )
+    browser=browser,
   )
   # tweet it!
   tweet(
