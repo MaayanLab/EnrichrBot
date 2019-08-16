@@ -1,6 +1,6 @@
 # EnrichrBot: Random from Enrichr
 
-This script runs an Enrichr bot which exclusivly uses the enrichr API--allows you to tweet from a randomly chosen Enrichr library genesets. Uses enrichr API to get a list of libraries (whitelist and blacklist can filter this set). Submits list to enrichr, gets screenshot of results, and finally tweets the results with the screenshot.
+This script runs an Enrichr bot which exclusivly uses the enrichr API--allows you to tweet from a randomly chosen Enrichr library genesets. Uses enrichr API to get a list of libraries (include and exclude can filter this set). Submits list to enrichr, gets screenshot of results, and finally tweets the results with the screenshot.
 
 ## Production
 

@@ -30,8 +30,8 @@ ENV ACCESS_TOKEN=
 ENV ACCESS_TOKEN_SECRET=
 ENV ENRICHR_URL=https://amp.pharm.mssm.edu/Enrichr
 ENV DATA_DIR=/data
-ENV WHITELIST=[]
-ENV BLACKLIST=[]
+ENV INCLUDE=[]
+ENV EXCLUDE=[]
 ENV CHROME_PATH=/opt/google/chrome/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 ADD .env.example /app/.env.example

@@ -18,8 +18,8 @@ CONSUMER_KEY = os.environ['CONSUMER_KEY']
 CONSUMER_SECRET = os.environ['CONSUMER_SECRET']
 DATA_DIR = os.environ.get('DATA_DIR', 'data')
 ENRICHR_URL = os.environ.get('ENRICHR_URL', 'https://amp.pharm.mssm.edu/Enrichr')
-WHITELIST = json.loads(os.environ.get('WHITELIST', '[]'))
-BLACKLIST = json.loads(os.environ.get('BLACKLIST', '[]'))
+INCLUDE = json.loads(os.environ.get('INCLUDE', '[]'))
+EXCLUDE = json.loads(os.environ.get('EXCLUDE', '[]'))
 CHROME_PATH = os.environ.get('CHROME_PATH', '/usr/local/bin/google-chrome')
 CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
 
@@ -77,7 +77,7 @@ def link_to_screenshot(link=None, output=None, browser=None):
   browser.save_screenshot(output)
   return output
 
-def choose_library(whitelist=[], blacklist=[]):
+def choose_library(include=[], exclude=[]):
   # obtain library statistics
   print('Fetching library statistics...')
   req = requests.get(ENRICHR_URL + '/datasetStatistics')
@@ -85,7 +85,7 @@ def choose_library(whitelist=[], blacklist=[]):
   stats = [
     stat
     for stat in req.json()['statistics']
-    if (whitelist and stat in whitelist) or (stat not in blacklist)
+    if (include and stat in include) or (stat not in exclude)
   ]
   # random library based on a random choice weighted by size of the dataset
   library = stats[
@@ -133,8 +133,8 @@ def main():
   while len(geneset_line) < 5:
     # choose a random library
     library = choose_library(
-      whitelist=WHITELIST,
-      blacklist=BLACKLIST,
+      include=INCLUDE,
+      exclude=EXCLUDE,
     )
     # choose a random index based on the number of terms
     geneset_index = random.randint(0, library['numTerms'] - 1)
