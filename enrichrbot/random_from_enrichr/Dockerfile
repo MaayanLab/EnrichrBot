@@ -4,7 +4,11 @@ RUN set -x \
   && echo "Preparing system..." \
   && useradd -ms /bin/bash -d /app app \
   && apt-get -y update \
-  && apt-get -y install bsdtar unzip \
+  && apt-get -y install \
+    bsdtar \
+    cron \
+    sudo \
+    unzip \
   && echo "Installing chrome..." \
   && curl https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /chrome.deb \
   && dpkg -i /chrome.deb || apt-get install -yf \
@@ -16,13 +20,10 @@ RUN set -x \
 ADD requirements.txt /app/requirements.txt
 RUN set -x \
   && echo "Installing python dependencies..." \
-  && pip install -r /app/requirements.txt
+  && pip install -r /app/requirements.txt \
+  && rm /app/requirements.txt
 
-USER app
-WORKDIR /app
-
-ADD enrichrbot.py /app/enrichrbot.py
-
+ENV CRON=
 ENV CONSUMER_KEY=
 ENV CONSUMER_SECRET=
 ENV ACCESS_TOKEN=
@@ -33,6 +34,20 @@ ENV WHITELIST=[]
 ENV BLACKLIST=[]
 ENV CHROME_PATH=/opt/google/chrome/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
+ADD .env.example /app/.env.example
+
 VOLUME [ "/data" ]
 
-ENTRYPOINT [ "python", "/app/enrichrbot.py" ]
+ADD entrypoint.sh /app/entrypoint.in.sh
+RUN set -x \
+  && bash -c 'cat <(echo "#!/bin/bash") <(cat /app/entrypoint.in.sh) > /app/entrypoint.sh' \
+  && chmod +x /app/entrypoint.sh \
+  && rm /app/entrypoint.in.sh
+
+ADD enrichrbot.py /app/enrichrbot.in.py
+RUN set -x \
+  && bash -c 'cat <(echo "#!/usr/local/bin/python") <(cat /app/enrichrbot.in.py) > /app/enrichrbot.py' \
+  && chmod +x /app/enrichrbot.py \
+  && rm /app/enrichrbot.in.py
+
+ENTRYPOINT [ "/app/entrypoint.sh" ]

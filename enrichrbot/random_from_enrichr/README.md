@@ -37,3 +37,9 @@ python enrichrbot.py --dry-run
 
 ### .env
 If present, a .env will be referenced as a fallback to explicitly set environment variables--see `.env.example`.
+
+## Cron mode
+While it's better to schedule this somewhere else--if required the image can use the env `CRON` with the cron time definition (i.e. `0 0 * * *`).
+
+## Bash mode
+If you just want to use bash, use the command `bash`.
