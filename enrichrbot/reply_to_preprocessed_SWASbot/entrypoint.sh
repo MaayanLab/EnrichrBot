@@ -5,6 +5,12 @@ cd /app/
 # Use .env.example to get relevant env args and put them in .env for runtime loading
 awk -F'=' '{ print $1"="ENVIRON[$1] }' /app/.env.example > /app/.env
 
+# Fetch data
+if [ ! -z "${DATA_DOWNLOAD}" ]; then
+  mkdir -p "${DATA_DIR}"
+  curl "${DATA_DOWNLOAD}" | bsdtar -xvf - -C "${DATA_DIR}"
+fi
+
 # Ensure data isn't empty
 if [ -d "${DATA}" ] && [ -z "$(ls ${DATA})" ]; then
   echo "Data directory is empty! Perhaps you forgot to mount ${DATA} or provide a download? exiting..."

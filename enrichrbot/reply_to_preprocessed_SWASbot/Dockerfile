@@ -5,8 +5,10 @@ RUN set -x \
   && useradd -ms /bin/bash -d /app app \
   && apt-get -y update \
   && apt-get -y install \
+    bsdtar \
     cron \
-    sudo
+    sudo \
+    unzip
 
 ADD requirements.txt /app/requirements.txt
 RUN set -x \
@@ -22,6 +24,7 @@ ENV ACCESS_TOKEN=
 ENV ACCESS_TOKEN_SECRET=
 ENV ENRICHR_URL=https://amp.pharm.mssm.edu/Enrichr
 ENV DATA_DIR=/data
+ENV DATA_DOWNLOAD=
 ADD .env.example /app/.env.example
 
 VOLUME [ "/data" ]
