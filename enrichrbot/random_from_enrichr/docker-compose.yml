@@ -2,5 +2,5 @@ version: '3'
 services:
   enrichrbot:
     build: .
-    image: maayanlab/enrichrbot-random-from-enrichr:1.0.0
+    image: maayanlab/enrichrbot-random-from-enrichr:1.0.1
     env_file: .env
