@@ -4,6 +4,7 @@ from selenium.webdriver.chrome.options import Options
 import json
 import os
 import random
+import re
 import requests
 import sys
 import time
@@ -24,6 +25,12 @@ CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedr
 
 if not os.path.exists(DATA_DIR):
   os.mkdir(DATA_DIR)
+
+def slugify(text):
+  return re.sub(r'[^A-Za-z0-9 ]', '', text).replace(' ', '_')
+  
+def prettify(text):
+  return text.replace('_', ' ')
 
 def tweet(
   message, media=None,
@@ -120,31 +127,35 @@ def init_selenium():
 def main():
   # initialize browser
   browser = init_selenium()
-  # choose a random library
-  library = choose_library(
-    whitelist=WHITELIST,
-    blacklist=BLACKLIST,
-  )
-  # choose a random index based on the number of terms
-  geneset_index = random.randint(0, library['numTerms'] - 1)
-  # get the random geneset at the index
-  geneset_line = next(iter(
-    line
-    for line_no, line in enumerate(fetch_library(library))
-    if line_no == geneset_index
-  ))
+  # pick random genesets but ensure the lines
+  # have more than 5 genes
+  geneset_line = []
+  while len(geneset_line) < 5:
+    # choose a random library
+    library = choose_library(
+      whitelist=WHITELIST,
+      blacklist=BLACKLIST,
+    )
+    # choose a random index based on the number of terms
+    geneset_index = random.randint(0, library['numTerms'] - 1)
+    # get the random geneset at the index
+    geneset_line = next(iter(
+      line
+      for line_no, line in enumerate(fetch_library(library))
+      if line_no == geneset_index
+    ))
   # parse the geneset line
   desc, geneset_str = geneset_line.strip().split('\t\t', maxsplit=1)
   geneset = geneset_str.split('\t')
   # prettify the description
-  pretty_desc = desc.replace('_', ' ')
+  pretty_desc = prettify(desc) + ' from ' + prettify(library['libraryName'])
   # submit the geneset to enrichr
   enrichr_link = submit_to_enrichr(geneset, 'Enrichr Bot Random Submissions: {}'.format(pretty_desc))
   # obtain a screenshot
   screenshot = link_to_screenshot(
     link=enrichr_link,
-    output=os.path.join(DATA_DIR, 'screenshot_{}_{}.png'.format(
-      library['libraryName'], desc,
+    output=os.path.join(DATA_DIR, 'screenshot_{}.png'.format(
+      slugify(pretty_desc),
     )),
     browser=browser,
   )
@@ -155,7 +166,7 @@ def main():
 
   if '--dry-run' in sys.argv:
     print('tweet("{}"#{}, {})'.format(
-      desc, len(pretty_desc), screenshot
+      desc, len(desc), screenshot
     ))
   else:
     tweet(
