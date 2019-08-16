@@ -12,7 +12,7 @@ chown -R $USER:$USER $DATA_DIR
 if [ "$1" == "bash" ]; then
   echo "Running in bash mode..."
   bash
-elif [ "$1" == "cron" ]; then
+elif [ "$1" == "cron" ] || [ "${FORCE_CRON}" -eq 1 ]; then
   echo "Running in cron mode..."
   set -x
   (

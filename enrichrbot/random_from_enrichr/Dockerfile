@@ -24,6 +24,7 @@ RUN set -x \
   && rm /app/requirements.txt
 
 ENV CRON=
+ENV FORCE_CRON=
 ENV CONSUMER_KEY=
 ENV CONSUMER_SECRET=
 ENV ACCESS_TOKEN=
