@@ -27,6 +27,7 @@ ENRICHR_URL = os.environ.get('ENRICHR_URL', 'https://amp.pharm.mssm.edu/Enrichr'
 #  need to schedule the launch of the 'main' function on a server at specified time intervals.
 
 def collect_tweets(user_name,path):
+  print('Checking for new tweets...')
   #
   # authentication
   twitter = Twython(CONSUMER_KEY, CONSUMER_SECRET, oauth_version=2)
@@ -72,13 +73,15 @@ def collect_tweets(user_name,path):
 def reply_to_GWA(reply_to_user, text, screenshot, tweet_id):
   #
   # authentication
+  message = '@' + reply_to_user + " " + text
+  print('Tweeting reply to {}: {} with media {}...'.format(tweet_id, message, media))
   auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
   auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
   api = tweepy.API(auth)
   #
   api.update_with_media(
     screenshot,
-    '@' + reply_to_user + " " + text,
+    message,
     str(tweet_id)
   ) # post a reply
 
@@ -90,15 +93,18 @@ def main(dry_run=False):
   # Collect tweets from GWASbot's Timeline
   collect_tweets('SbotGwa', TWEET_STORAGE_PATH)
   # Get the latest tweet
+  print('Getting latest tweet metadata...')
   latest_file = sorted(os.listdir(TWEET_STORAGE_PATH))[-1]
   latest_json = json.load(open(os.path.join(TWEET_STORAGE_PATH, latest_file), 'r'))
   # Resolve the identifier from the description (first line, s/ /_/g)
   identifier = latest_json['text'].splitlines()[0].replace(' ','_').lower()
+  print('Searching for identifier: {}...'.format(identifier))
   # Look up the identifier in the results
   df = pd.read_csv(LOOKUP_RESULTS, sep='\t')
   matches = df[df['identifier'].map(lambda s, q=identifier: q in s.lower())]
   assert matches.shape[0] != 0, "{} not found".format(identifier)
   assert matches.shape[0] > 1, "{} matched multiple results".format(identifier)
+  print('Preparing reply...')
   # Post link as reply
   enrichr_link = matches.iloc[0, 'enrichr']
   desc = '{}. Enrichr link: {} @MaayanLab #Enrichr #Bioinformatics #BD2K #LINCS @BD2KLINCSDCIC @DruggableGenome #BigData'.format(
