@@ -70,7 +70,7 @@ def collect_tweets(user_name,path):
 
 # Call the function with: (a) Status text + a link to the photo/ data from Enrichr, and (b) ID of the original tweet.
 
-def reply_to_GWA(reply_to_user, text, screenshot, tweet_id):
+def reply_to_GWA(reply_to_user, text, media, tweet_id):
   #
   # authentication
   message = '@' + reply_to_user + " " + text
@@ -80,7 +80,7 @@ def reply_to_GWA(reply_to_user, text, screenshot, tweet_id):
   api = tweepy.API(auth)
   #
   api.update_with_media(
-    screenshot,
+    media,
     message,
     str(tweet_id)
   ) # post a reply
@@ -97,23 +97,26 @@ def main(dry_run=False):
   latest_file = sorted(os.listdir(TWEET_STORAGE_PATH))[-1]
   latest_json = json.load(open(os.path.join(TWEET_STORAGE_PATH, latest_file), 'r'))
   # Resolve the identifier from the description (first line, s/ /_/g)
-  identifier = latest_json['text'].splitlines()[0].replace(' ','_').lower()
+  identifier = latest_json['text'].splitlines()[0].replace(' ','_').lower().strip()
   print('Searching for identifier: {}...'.format(identifier))
   # Look up the identifier in the results
   df = pd.read_csv(LOOKUP_RESULTS, sep='\t')
-  matches = df[df['identifier'].map(lambda s, q=identifier: q in s.lower())]
-  assert matches.shape[0] != 0, "{} not found".format(identifier)
-  assert matches.shape[0] > 1, "{} matched multiple results".format(identifier)
+  matches = df[df['identifier'].map(lambda s, q=identifier: q in s.lower().strip())]
+  print(matches.shape[0])
+  if matches.shape[0] == 0:
+    raise Exception("{} not found".format(identifier))
+  if matches.shape[0] > 1:
+    raise Exception("{} matched multiple results".format(identifier))
   print('Preparing reply...')
   # Post link as reply
-  enrichr_link = matches.iloc[0, 'enrichr']
+  enrichr_link = matches['enrichr'].iloc[0]
   desc = '{}. Enrichr link: {} @MaayanLab #Enrichr #Bioinformatics #BD2K #LINCS @BD2KLINCSDCIC @DruggableGenome #BigData'.format(
-    identifier, enrichr_link,
+    identifier.replace('_', ' ').capitalize(), enrichr_link,
   )
   # Get the screenshot file relative to the results file
   screenshot = os.path.join(
     os.path.dirname(LOOKUP_RESULTS),
-    matches.iloc[0, 'screenshot']
+    matches['screenshot'].iloc[0]
   )
   # Get the tweet id for which to reply to
   tweet_id = latest_json['id_str']
