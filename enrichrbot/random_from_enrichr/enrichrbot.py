@@ -91,7 +91,7 @@ def choose_library(include=[], exclude=[]):
   library = stats[
     random.choices(
       *zip(*[
-        (ind, stat['numTerms'])
+        (ind, 1)
         for ind, stat in enumerate(stats)
         ])
     )[0]
