@@ -1,0 +1,7 @@
+version: '3'
+services:
+  enrichrbot:
+    build: .
+    image: IDGene.py
+    env_file: .env
+  
