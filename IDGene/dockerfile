@@ -2,7 +2,7 @@ FROM python:3.7.4
 
 RUN set -x \
   && echo "Setting up system..." \
-  && apt-get -y update \
+  && apt-get -y update
 
 ADD requirements.txt /app/requirements.txt
 RUN set -x \
