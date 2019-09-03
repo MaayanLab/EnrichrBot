@@ -79,10 +79,11 @@ def reply_to_GWA(reply_to_user, text, media, tweet_id):
   auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
   api = tweepy.API(auth)
   #
-  api.update_with_media(
-    media,
+  media_uploads = [api.media_upload(medium) for medium in media]
+  api.update_status(
     message,
-    str(tweet_id)
+    str(tweet_id),
+    media_ids=media_uploads,
   ) # post a reply
 
 #############################################################################################
@@ -114,10 +115,10 @@ def main(dry_run=False):
     identifier.replace('_', ' ').capitalize(), enrichr_link,
   )
   # Get the screenshot file relative to the results file
-  screenshot = os.path.join(
+  screenshot = [os.path.join(
     os.path.dirname(LOOKUP_RESULTS),
     matches['screenshot'].iloc[0]
-  )
+  )]
   # Get the tweet id for which to reply to
   tweet_id = latest_json['id_str']
   if dry_run:

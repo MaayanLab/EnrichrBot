@@ -2,7 +2,7 @@ version: '3'
 services:
   enrichrbot:
     build: .
-    image: maayanlab/enrichrbot-reply-to-preprocessed-swasbot:1.0.1
+    image: maayanlab/enrichrbot-reply-to-preprocessed-swasbot:1.0.2
     env_file: .env
     volumes:
       - ./data:/data
