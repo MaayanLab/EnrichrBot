@@ -18,6 +18,8 @@ RUN set -x \
   && chmod +x /usr/local/bin/chromedriver
 
 ENV CRON=
+ENV PTH=
+ENV PTH_TO_IDGLIST=
 ENV FORCE_CRON=
 ENV CONSUMER_KEY=
 ENV CONSUMER_SECRET=
@@ -29,7 +31,7 @@ ENV INCLUDE=[]
 ENV EXCLUDE=[]
 ENV CHROME_PATH=/opt/google/chrome/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
-ADD .env /app/.env
+ADD .env.example /app/.env.example
 
 ADD requirements.txt /app/requirements.txt
 RUN set -x \
@@ -38,8 +40,10 @@ RUN set -x \
   && rm /app/requirements.txt
   
 ADD . /app/
+RUN set -x \
+  && chmod +x /app/idgene.sh
 
-ENTRYPOINT ["sh", "/app/idgene.sh"]
+CMD [/app/idgene.sh"]
 
 #------------------------- Commands -------------------------------------------
 

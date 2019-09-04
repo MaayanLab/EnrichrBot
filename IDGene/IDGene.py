@@ -22,12 +22,12 @@ ACCESS_TOKEN_SECRET = os.environ.get('ACCESS_TOKEN_SECRET')
 CONSUMER_KEY = os.environ.get('CONSUMER_KEY')
 CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
 
-def init_selenium(CHROMEDRIVER_PATH):
+def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   print('Initializing selenium...')
   options = Options()
   options.add_argument('--headless')
   options.add_argument('--no-sandbox')
-  options.add_argument('--window-size=1080,1080')
+  options.add_argument('--window-size={}'.format(windowSize))
   return webdriver.Chrome(
     executable_path=CHROMEDRIVER_PATH,
     options=options,
@@ -70,7 +70,7 @@ def main_random_tweet():
       
     # create and save screenshots
     screenshots =[ link_to_screenshot( link=harmonizome_link, output=PTH +"harmo.png", browser=browser),
-      link_to_screenshot( link=archs4_link, output=PTH +"archs4.png", browser=browser),
+      link_to_screenshot( link=archs4_link, output=PTH +"archs4.png", browser=init_selenium(CHROMEDRIVER_PATH, windowSize='1200,2080'),
       link_to_screenshot( link=geneshot_link, output=PTH +"gsht.png", browser=browser),
       link_to_screenshot( link=pharos_link, output=PTH +"pharso.png", browser=browser) ]
       
@@ -81,8 +81,8 @@ def main_random_tweet():
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
     # Construct the tweet
-    message = "The @MaayanLab developed several resources to explore and predict knowledge about {}. \n {} {} {} {}"
-    message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,pharos_link)
+    message ="Explore prior knowledge and functional predictions for understudied {} {} using #IDG and #LINCS resources.\n{} {} {} {} {}"
+    message = message.format(df[df.Gene==gene].iloc[0][1],gene,geneshot_link,harmonizome_link,archs4_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @LINCSprogram @BD2KLINCSDCIC")
     # Send the tweet with photos
     p1 = api.media_upload(screenshots[0])
     p2 = api.media_upload(screenshots[1])
@@ -97,6 +97,3 @@ def main_random_tweet():
 
 if __name__ == '__main__':
     main_random_tweet()
-    
-    
-    
