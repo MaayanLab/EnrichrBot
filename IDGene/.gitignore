@@ -1,4 +1,4 @@
 .env
-.png
+*.png
 .DS_Store
 geckodriver.log
