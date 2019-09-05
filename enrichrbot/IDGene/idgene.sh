@@ -6,4 +6,4 @@ fi
 
 echo "Posting random tweets with IDGene.py"
 
-python3 ./app/IDGene.py $@
+python3 ${PTH}IDGene.py $@

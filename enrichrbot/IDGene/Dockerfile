@@ -48,7 +48,10 @@ RUN set -x \
   && chmod +x /app/idgene.sh \
   && rm /app/idgene.in.sh
 
-ADD . /app/
+ADD IDGene.py /app/IDGene.py
+
+# TODO: Put somewhere better
+ADD data /app/data
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]
 
