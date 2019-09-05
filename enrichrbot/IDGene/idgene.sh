@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 if [ -z "${PTH}" ]; then
@@ -7,4 +6,4 @@ fi
 
 echo "Posting random tweets with IDGene.py"
 
-python3 ./app/IDGene.py
+python3 ./app/IDGene.py $@
