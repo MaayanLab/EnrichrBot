@@ -80,10 +80,11 @@ def reply_to_GWA(reply_to_user, text, media, tweet_id):
   api = tweepy.API(auth)
   #
   media_uploads = [api.media_upload(medium) for medium in media]
+  media_ids = [upload.media_id_string for upload in media_uploads]
   api.update_status(
     message,
     str(tweet_id),
-    media_ids=media_uploads,
+    media_ids=media_ids,
   ) # post a reply
 
 #############################################################################################
