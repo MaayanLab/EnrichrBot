@@ -2,7 +2,7 @@ version: '3'
 services:
   enrichrbot_idgene:
     build: .
-    image: maayanlab/enrichrbot-idgene
+    image: maayanlab/enrichrbot-idgene:1.0.1
     env_file: .env
     volumes:
       - ./data:/app/data
