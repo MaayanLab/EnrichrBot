@@ -3,27 +3,23 @@ import argparse
 import sys
 import numpy as np
 import gzip
-
+import time
 from rpy2.robjects.vectors import StrVector
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
 pandas2ri.activate()
-
 from rpy2.robjects import r as R
 from rpy2.robjects.conversion import localconverter
 from rpy2.robjects.packages import importr
-
-import pandas as pd
-
 
 """
     Read in original GWAS file from UK biobank and pull out SNPs that have
     p-value less than specified cutoff value
 """
-def get_significant(filename, cutoff):
+def get_significant(filename, pval_cutoff):
     with gzip.open(filename) as f:
         df = pd.read_csv(f, sep='\t')
-    df = df.loc[df.pval < cutoff]
+    df = df.loc[df.pval < pval_cutoff]
     df = df.loc[df['low_confidence_variant'] == False]
     return df
 
@@ -43,11 +39,9 @@ def reformat_data(data):
     cols = data.columns.tolist()
     cols = cols[-4:] + cols[:-4]
     data = data[cols]
-
     data.sort_values(by=['pval'], inplace=True)
     data.reset_index(inplace=True)
     data.drop(columns=['index'], inplace=True)
-
     return data
 
 """
@@ -73,9 +67,9 @@ def pick_out_snps(data):
 """
     Put everything together to get the file of significant SNPs
 """
-def get_snps(filename, cutoff):
+def get_snps(filename, pval_cutoff):
     print("running ", filename)
-    my_data = get_significant(filename, cutoff)
+    my_data = get_significant(filename, pval_cutoff)
     if my_data.shape[0] == 0:
         return my_data
     final_data = reformat_data(my_data)
@@ -93,7 +87,6 @@ def get_snps(filename, cutoff):
 def per_chromosome(data, chr_num, ucutoff, dcutoff):
     hg19_chrom = hg19.copy().loc[hg19.chrom == ('chr' + str(chr_num))]
     hg19_chrom.dropna(inplace=True)
-
     df = pd.DataFrame()
     df["SNP_location"] = data.chrom.map(str) + ':' + data.pos.map(str)
     df["SNP"] = data.ref + '/' + data.alt
@@ -112,8 +105,7 @@ def per_chromosome(data, chr_num, ucutoff, dcutoff):
     minus_strand2 = end.loc[(end.strand == '-') & (end.Distance2 <= dcutoff) & (abs(end.Distance2) <= ucutoff)]
     df = pd.concat([plus_strand1, minus_strand1, plus_strand2, minus_strand2], sort=False)
     df.drop_duplicates(subset=["SNP_location", "SNP"], keep="first", inplace=True)
-    del hg19_chrom
-
+    del(hg19_chrom)
     return df
 
 def get_geneset(genes, outfile):
@@ -123,14 +115,21 @@ def get_geneset(genes, outfile):
     with localconverter(ro.default_converter + pandas2ri.converter):
         t_IDs = ro.conversion.py2rpy(genes['gene_ID'])
     R.library("biomaRt")
-    mart = R.useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="http://grch37.ensembl.org")
+    #mart = R.useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="http://grch37.ensembl.org")
+    flag = True
+    while flag:
+        try:
+            mart = R.useMart(biomart="ENSEMBL_MART_ENSEMBL",dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
+            flag = False
+        except:
+            print("Faild to connect to Ensembl, trying again in 10sec.")
+            time.sleep(5)
     genes = R.getBM(attributes = StrVector(("ensembl_gene_id", "hgnc_symbol")),
                     filters = "ensembl_gene_id",
                     values = t_IDs,
                     mart = mart)
     utils = importr("utils")
     utils.write_table(genes['hgnc_symbol'], file = outfile, append=False, row_names = False, col_names = False, quote = False)
-
 
 """
     compile all smaller functions to run for single file
@@ -151,7 +150,8 @@ def run(filename, ucutoff, dcutoff, pval, outfile):
     rename the columns to be more readable
     only keep protein coding genes
 """
-hg19 = pd.read_csv("snps_to_genes/data/hg19assembly.dms", sep='\t', header=0, names=["bin", "name", "chrom", "strand", "txStart", "txEnd",
+pth= "/users/alon/desktop/enrichrbot-master/snps_to_genes/data/hg19assembly.dms"
+hg19 = pd.read_csv(pth, sep='\t', header=0, names=["bin", "name", "chrom", "strand", "txStart", "txEnd",
 "cdsStart", "cdsEnd", "exonCount", "exonStarts", "exonEnds", "score", "gene_ID", "cdsStartStat", "cdsEndStat", "exonFrames", "source"])
 hg19 = hg19.loc[hg19["source"] == "protein_coding"]
 
