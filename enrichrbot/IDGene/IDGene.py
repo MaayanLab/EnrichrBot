@@ -91,7 +91,7 @@ def main_random_tweet():
   auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
   api = tweepy.API(auth)
   # Construct the tweet
-  message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG\n{}\n{}\n{}\n{}\n{}"
+  message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG resources:\n{}\n{}\n{}\n{}\n{}"
   message = message.format(df[df.Gene==gene].iloc[0][1],gene,geneshot_link,harmonizome_link,archs4_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
   # Send the tweet with photos
   ps = [api.media_upload(screenshot) for screenshot in screenshots]
