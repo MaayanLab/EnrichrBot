@@ -27,7 +27,7 @@
 - **geneshot_validation.ipynb:** jupyter notebook for Geneshot validation
 
 
-### Running snps_to_genes.py
+### Running snps2genes.py
 
 1. Clone EnrichrBot repository onto local machine
 2. Download file from [UK Biobank GWAS](https://docs.google.com/spreadsheets/d/1kvPoupSzsSFBNSztMzl04xMoSC3Kcx3CrjVf4yBmESU/edit?usp=sharing)
