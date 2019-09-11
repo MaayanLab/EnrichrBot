@@ -122,7 +122,7 @@ def get_geneset(genes, outfile):
             mart = R.useMart(biomart="ENSEMBL_MART_ENSEMBL",dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
             flag = False
         except:
-            print("Faild to connect to Ensembl, trying again in 10sec.")
+            print("Faild to connect to Ensembl, trying again in 5sec.")
             time.sleep(5)
     genes = R.getBM(attributes = StrVector(("ensembl_gene_id", "hgnc_symbol")),
                     filters = "ensembl_gene_id",
