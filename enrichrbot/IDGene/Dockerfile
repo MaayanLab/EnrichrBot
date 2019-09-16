@@ -55,3 +55,22 @@ ADD data /app/data
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]
 
+#------------------------- Commands -------------------------------------------
+
+#  1)  add python3 DoEnrichrForLookupTable.py $PTH \  ---> post Enrichr results
+#  2)  add python3 Tweet.py $PTH $RIGHT_NOW ---> post a tweet
+
+
+# set working directory:     cd /users/alon/desktop/GitHub/EnrichrBot/enrichrbot/IDGene
+# build:                     docker-compose build enrichrbot_idgene
+
+# push to dockerhub:        docker login -u <username> -p <password>
+# locate image id           docker images
+#                           docker tag <image_id> <username>/enrichrbot_idgene:1.0.2
+#                           docker push maayanlab/enrichrbot-idgene
+
+# run docker:                docker-compose run enrichrbot_idgene
+# clean:                     docker-compose down -v enrichrbot_idgene
+
+# delete all containers:     docker system prune -a
+# see all containers:        docker 
