@@ -15,6 +15,8 @@ from os import listdir
 from os.path import isfile, join
 import re
 
+from pybiomart import Server
+              
 pandas2ri.activate()
 
 """
@@ -124,14 +126,21 @@ def get_geneset(genes, outfile, mart):
     if genes.shape[0] == 0:
         genes.to_csv(outfile, sep='\t')
         return
-    with localconverter(ro.default_converter + pandas2ri.converter):
-        t_IDs = ro.conversion.py2rpy(genes['gene_ID'])
-    R.library("biomaRt")
+    # with localconverter(ro.default_converter + pandas2ri.converter):
+    #     t_IDs = ro.conversion.py2rpy(genes['gene_ID'])
+        
+    t_IDs = genes['gene_ID'].tolist()
+    
+    #R.library("biomaRt")
     try:
-        genes = R.getBM(attributes = StrVector(("ensembl_gene_id", "hgnc_symbol")),
-                        filters = "ensembl_gene_id",
-                        values = t_IDs,
-                        mart = mart)
+        genes = mart.query(attributes=['ensembl_gene_id', 'hgnc_symbol'],
+              filters={'link_ensembl_gene_id': t_IDs})
+              
+        # genes = R.getBM(attributes = StrVector(("ensembl_gene_id", "hgnc_symbol")),
+        #                  filters = "ensembl_gene_id",
+        #                  values = t_IDs,
+        #                  mart = mart)
+                        
         genes.to_csv(outfile+".gz",index=False,compression='gzip')
     except:
         print("error connecting to BioMart: ", outfile)
@@ -164,9 +173,13 @@ hg19 = pd.read_csv(pth, sep='\t', header=0, names=["bin", "name", "chrom", "stra
 hg19 = hg19.loc[hg19["source"] == "protein_coding"]
 
 # create biomaRt object
-R.library("biomaRt")
-mart = R.useMart(biomart="ENSEMBL_MART_ENSEMBL",dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
+#R.library("biomaRt")
+#mart = R.useMart(biomart="ENSEMBL_MART_ENSEMBL",dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
 
+server = Server(host='http://www.ensembl.org')
+
+mart = (server.marts['ENSEMBL_MART_ENSEMBL']
+                 .datasets['hsapiens_gene_ensembl'])
 
 # get list of files
 mypath = r"/Volumes/My Book/"
