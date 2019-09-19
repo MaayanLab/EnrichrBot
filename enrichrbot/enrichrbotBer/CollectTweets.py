@@ -15,7 +15,8 @@ import gzip
 import sys
 import calendar
 import re
- 
+from pathlib import Path
+
 # load var from .env file
 load_dotenv()
 PTH = os.environ.get('PTH') # '/users/alon/desktop/GitHub/TwitterBert1/'
@@ -28,7 +29,15 @@ PTH = os.environ.get('PTH') # '/users/alon/desktop/GitHub/TwitterBert1/'
 # if its Monday --> open a new folder
 # else --> save tweets in the latest existing folder
 
-if date.today().weekday() == 0:
+fileName = Path(os.path.join(PTH,'tweets/folder.txt'))
+if fileName.is_file():
+  print ("File exist")
+  d = date.today().weekday()
+else:
+  print ("File not exist")
+  d = 0 # use on first run where file do not exist
+
+if d == 0: # if todayt is Mon open a new folder
   log = open( os.path.join(PTH,"output","log.txt"), "a")
   logfolder = open( os.path.join(PTH,"tweets","folder.txt"), "w")
   FOLDER = str(calendar.timegm(time.gmtime()))
