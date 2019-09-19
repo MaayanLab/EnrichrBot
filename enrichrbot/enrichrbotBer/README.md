@@ -1,4 +1,4 @@
-# TwitterBert1
+# EnrichrBotBert
 1. Daily collect tweets with human gene description [CollectTweets.py]
 2. Prepare date files for Bert classification [EnrichrBert1.py]
 3. BERT: classify tweets as gene relater/ not [BERT run_classifier.py]
