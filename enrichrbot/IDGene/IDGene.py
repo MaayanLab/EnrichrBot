@@ -49,7 +49,7 @@ def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
   os.makedirs(os.path.dirname(output), exist_ok=True)
   browser.save_screenshot(output)
   return output
-
+  
 def main_random_tweet():
   # read IDG gene list: https://druggablegenome.net/IDGProteinList
   df = pd.read_csv(PTH_TO_IDGLIST)
@@ -101,6 +101,15 @@ def main_random_tweet():
     print('tweet: {} {}'.format(message, media_ids))
   else:
     api.update_status(media_ids=media_ids, status=message)
+    # auto follow new followers
+    for follower in tweepy.Cursor(api.followers, screen_name="BotEnrichr").items():
+      if not follower.following:
+        try:
+          follower.follow()
+          print(follower.screen_name)
+          time.sleep(15)
+        except:
+          pass
 
 if __name__ == '__main__':
   main_random_tweet()

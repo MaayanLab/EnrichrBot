@@ -136,7 +136,7 @@ print("Finished! Go to folder:",os.path.join(PTH,"tweets",FOLDER,"full_data.csv.
 #================================================================
 
 path1=os.path.join(PTH,"tweets",FOLDER,"full_data.csv.gz")
-df=pd.read_csv(path1,compression='gzip',dtype=str)
+df=pd.read_csv(path1,compression='gzip',dtype=str,lineterminator='\n')
 df['index_col'] = df.index
 
 # Creating test dataframe according to BERT format
