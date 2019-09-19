@@ -6,7 +6,7 @@ fi
 
 day=$(date +"%u")
 
-echo "collecting tweets with EnrichrBert1.py"
+echo "collecting tweets"
 python3 ./app/CollectTweets.py || exit 1
 
 python3 ./app/EnrichrBert1.py || exit 1
