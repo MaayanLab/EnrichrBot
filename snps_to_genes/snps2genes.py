@@ -186,14 +186,12 @@ mypath = r"/Volumes/My Book/"
 onlyfiles = [f for f in os.listdir(mypath+"AHS_projectdata") if not f.startswith('.')] # ignore hidden files
 
 # analyze all files
-# upsteream = downstream = 100,000
-# p-value = 5e-8
-i = 0
-for file in onlyfiles:
+# upsteream = downstream = 100,000; p-value = 5e-8
+i = 4966
+for file in onlyfiles[4966:]:
     run(os.path.join(mypath,"AHS_projectdata",file), 100000, 100000, 5e-8, os.path.join(mypath,"out",file+".csv"), mart)
     print(i)
     i=i+1
-
 
 # if __name__ == '__main__':
 #     parser = argparse.ArgumentParser()
