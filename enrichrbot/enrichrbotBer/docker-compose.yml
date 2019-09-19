@@ -1,0 +1,13 @@
+version: '3'
+services:
+  enrichrbotbert:
+    build: .
+    image: maayanlab/enrichrbotbert:1.0.2
+    env_file: .env
+    volumes:
+      - ./output:/app/output
+      - ./tweets:/app/tweets
+      - ./bert/data:/app/bert/data/
+      # TODO download on startup
+      - ./bert/bert_output:/app/bert/bert_output
+      - ./screenshots:/app/screenshots
