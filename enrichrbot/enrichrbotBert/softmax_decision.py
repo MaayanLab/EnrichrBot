@@ -15,11 +15,11 @@ load_dotenv()
 PTH = os.environ.get('PTH')
 
 # get the latest directory (collected json tweets from the current week are saved in that FOLDER)
-f = open(os.path.join(PTH,'tweets/folder.txt'))
+f = open(os.path.join(PTH,'tweets/folder.txt'))  # /home/maayanlab/enrichrbot/
 FOLDER = f.readline()
 f.close()
 
-full_data=pd.read_csv(os.path.join(PTH,"tweets",FOLDER,"full_data.csv.gz"),compression='gzip',dtype=str)
+full_data=pd.read_csv(os.path.join(PTH,"tweets",FOLDER,"full_data.csv.gz"),compression='gzip',dtype=str, engine='python')
 df_results = pd.read_csv(os.path.join(PTH ,"bert/bert_output/test_results.tsv"),sep="\t",header=None) # load BERT class likelihood.
 df_results_csv = pd.DataFrame({'Is_Response':df_results.idxmax(axis=1)}) # decide a class for each tweet based on BERT class likelihood score.
 
@@ -49,6 +49,10 @@ df = pd.read_csv(os.path.join(PTH,'data/special_genes.csv'), dtype= str) # Load 
 
 L1 = set(df['Gene'].tolist())
 L2 =set(full_data['GeneSymbol'].tolist())
+
+# to lowercase
+L1=set([x.lower() for x in L1])
+L2=set([x.lower() for x in L2])
 
 Alert = list(L1 & L2)
 
