@@ -7,4 +7,4 @@
    * 5.1. Bert2Net.R invokes Tweet.py
 
 * Weekly genes synopsis: Tweet a report about “trending” genes [Tweet.py].
-* Daily gene comment: Reply to tweets that mention genes.
+* Daily gene comment: Reply to tweets that mention genes [DailyTweet.py].
