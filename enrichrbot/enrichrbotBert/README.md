@@ -6,5 +6,5 @@
 5. Random Forest: classify tweets as gene-diseae/ not, generate plots, tweet [Bert2Net.R]
    * 5.1. Bert2Net.R starts Tweet.py
 
-* Weekly: Tweet a report about “trending” genes.
-* Daily: Reply to tweets that mention genes.
+* Weekly genes synopsis: Tweet a report about “trending” genes.
+* Daily gene comment: Reply to tweets that mention genes.
