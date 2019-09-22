@@ -230,10 +230,10 @@ if(day == 1){
       
       pth<-paste0(PTH,'output/barplot.jpg')
       jpeg(pth, width = 5, height = 5, units = 'in', res = 300)
-      p<-ggplot(dataM,aes(x= reorder(gene,freq),freq)) +
+      p<-ggplot(dataM,aes(x= reorder(gene,freq),log(freq))) +
         geom_bar(stat ="identity", fill="blue", colour="white") +
         ggtitle("Tweets distribution of the top 5% tweeted genes") +
-        ylab("tweets") +
+        ylab("log(tweets)") +
         xlab("Gene Symbol") +
         coord_flip() 
       print(p)
@@ -294,13 +294,21 @@ if(day == 1){
           #rgb method is to convert colors to a character vector.
           E(g)$color = apply(c_scale(E(g)$weight/max(E(g)$weight)), 1, function(x) rgb(x[1]/255,x[2]/255,x[3]/255) )
           
+          # plot graph
           pth<-paste0(PTH,'output/gene_gene_graph.jpg')
           jpeg(pth, width = 6, height = 6, units= 'in', res = 300)
-          plot(g)
-          #plot(g, edge.arrow.size=0.2,layout=layout_with_kk(g), edge.width= E(g)$weight ) 
-          dates<-paste0("Main Connected Componnent of a Gene-Gene Network \n  degree(node) < median(degree) + std 
-                        Gray: low edge weight, Red: high edge weight")
-          title(dates,cex.main=1,col.main="black",cex.main = 1)
+          layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
+          plot(g,col = colfunc(20))
+          txt<-paste0("Main Connected Componnent of a Gene-Gene Network.\n")
+          title(txt,cex.main=0.6,col.main="black",
+                sub =  "Edge connects genes co-mentioned by a user.\n")
+          text(0, 0, "Node's degree is smaller than the median degree pluse one stdev", cex = .8,adj = 1)
+          colfunc <- colorRampPalette(c("red","gray"))
+          # plot legend
+          legend_image <- as.raster(matrix(colfunc(20), ncol=1))
+          plot(c(0,1),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = '#co-mentions',cex.main=0.5)
+          text(x=1.2, y = seq(0,1,l=3), labels = seq(min(E(g)$weight),max(E(g)$weight),l=3),cex=0.5)
+          rasterImage(legend_image, 0, 0, 1,1)
           dev.off()
           
           # write genes (i.e. nodes) to file
