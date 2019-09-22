@@ -300,9 +300,13 @@ if(day == 1){
           layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
           plot(g,col = colfunc(20))
           txt<-paste0("Main Connected Componnent of a Gene-Gene Network.\n")
-          title(txt,cex.main=0.6,col.main="black",
-                sub =  "Edge connects genes co-mentioned by a user.\n")
-          text(0, 0, "Node's degree is smaller than the median degree pluse one stdev", cex = .8,adj = 1)
+          title(main=txt,
+                sub =  "Edge connects genes co-mentioned by a user.\n",
+                cex.main=0.6,col.main="black", cex=0.6)
+          mtext("Node's degree is smaller than the median degree pluse one stdev",
+                side=4, line=1, cex.lab=0.8,las=1, col="blue")
+          
+          text(0, 0, , cex = .8,adj = 1)
           colfunc <- colorRampPalette(c("red","gray"))
           # plot legend
           legend_image <- as.raster(matrix(colfunc(20), ncol=1))
