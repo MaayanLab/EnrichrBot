@@ -12,7 +12,7 @@ import tweepy
 load_dotenv(verbose=True)
  
 # get environment vars from .env
-PTH = os.environ.get('PTH') # "/users/alon/desktop/github/twitterbert1"
+PTH = os.environ.get('PTH') # "/home/maayanlab/enrichrbot/"
 CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
 ACCESS_TOKEN = os.environ.get('ACCESS_TOKEN')
 ACCESS_TOKEN_SECRET = os.environ.get('ACCESS_TOKEN_SECRET')
@@ -77,7 +77,7 @@ def tweet(gene, tweet_id):
     api.update_status(status = message, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True, media_ids=media_ids)
 
 # post a reply to each tweet that was found
-def main_tweet:
+def main_tweet():
   df= pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"))
   for tweet_id in df['tweet_id']:
     gene = df[df.tweet_id==tweet_id].iloc[0][2]
@@ -85,7 +85,3 @@ def main_tweet:
 
 if __name__ == '__main__':
   main_tweet()
-  
-  
-
-

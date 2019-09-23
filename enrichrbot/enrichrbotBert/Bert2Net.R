@@ -18,10 +18,11 @@ library(data.table)
 # value from terminal
 day = commandArgs(trailingOnly=TRUE)[1]
 
-PTH = '/app/'
+#PTH = '/home/maayanlab/enrichrbot/' 
+PTH = '/app/' 
 
 FOLDER <- read_csv(paste0(PTH,"tweets/folder.txt"), col_names = FALSE)$X1
-                       
+
 filepath = paste0(PTH,'bert/data/bert_full_result_',FOLDER,'.csv') # path to BERT classification results
 
 bert_full_result <- read_csv(filepath)
@@ -32,6 +33,7 @@ gene_Tweets<-gene_Tweets[!duplicated(gene_Tweets$tweet_id),]
 str <- strptime(gene_Tweets$tweet_created_at, "%a %b %d %H:%M:%S %z %Y", tz = "GMT")
 gene_Tweets$tweet_created_at <- as.POSIXct(str, tz = "GMT")
 gene_Tweets<-gene_Tweets[!is.na(gene_Tweets$user_id),]
+gene_Tweets<-gene_Tweets[gene_Tweets$GeneSymbol!='None',]
 
 Homo_sapiens <- read_delim(paste0(PTH,"/Homo_sapiens.tsv"),"\t", escape_double = FALSE, trim_ws = TRUE) # lead gene description
 
@@ -75,7 +77,7 @@ registerDoParallel(cl)
 
 # calc cos similarity and check if gene symbol in tweet
 ans<-foreach(i =1:nrow(gene_Tweets),.combine=rbind, .packages=c("tm", "slam")) %dopar% {
-
+  
   # cosine similarity
   tweet <- gene_Tweets[i,]$text_clean
   description <- Homo_sapiens[Homo_sapiens$Symbol==gene_Tweets[i,]$GeneSymbol,]$description_clean
@@ -113,7 +115,6 @@ registerDoSEQ()
 library(dplyr)
 ans<-distinct(ans)
 
-
 ###########################################################################################################
 # automated labeling based on key-words
 ###########################################################################################################
@@ -123,7 +124,7 @@ ans$is_gene<-'No class'
 ans[grepl("gene|genom",ans$text_clean),'is_gene']<-1 # --> Positive example: 423
 
 Blacklist<- c("MS","AAAS","ABCD1","ACE","ADA","ADSL","AGT","AGA","AIRE","AIP","ALAD","AMT","APC","APP","AR","ASL","ATM","AUH","AVP")
-ans[grepl("protein | disease | chromosome | disease",ans$text_clean),'is_gene']<-0  #  --> Negative example: 3370
+ans[grepl("protein | disease | chromosome ",ans$text_clean),'is_gene']<-0  #  --> Negative example: 3370
 ans[ans$user_id=='854132161900892163','is_gene']<-0 # this is the RibbonDiagrams bot which tweets random proteins every 30 minutes.
 ans[ans$GeneSymbol %in% Blacklist,'is_gene']<-0
 
@@ -137,184 +138,183 @@ write.csv(ReplyGenes,file=paste0(PTH,'output/ReplyGenes.csv'),row.names = FALSE)
 # if today is Friday --> prepare a weekly report be exectuting the below code. 
 if(day == 1){
   print("Starting weekly ananysis")
+  ###########################################################################################################
+  # TFIDF
+  ###########################################################################################################
+  # use these predictors to predict if the tweet is gene-related or not (manual labeling):
+  # numeric: <tf-idf vectors>
+  # (1) numeric: <cosine similarity> between tweets and gene description
+  # (2) bonary: <gene-symbol in tweet>
+  
+  text_corpus = Corpus(VectorSource(ans$text_clean))
+  text_corpus = tm_map(text_corpus, content_transformer(tolower))
+  text_corpus = tm_map(text_corpus, removeNumbers)
+  text_corpus = tm_map(text_corpus, removePunctuation)
+  text_corpus = tm_map(text_corpus, removeWords, c("the", "and", stopwords("english")))
+  text_corpus =  tm_map(text_corpus, stripWhitespace)
+  
+  # To reduce the dimension of the DTM, we remove less terms with low tf-idf score such that the sparsity is less than 0.95.
+  text_dtm_tfidf <- DocumentTermMatrix(text_corpus, control = list(weighting = weightTfIdf))
+  text_dtm_tfidf = removeSparseTerms(text_dtm_tfidf, 0.95)
+  ans <- cbind(ans, as.matrix(text_dtm_tfidf))
+  
+  
+  ###########################################################################################################
+  # TRAINING MODELs 
+  # source('~/Google Drive/DesktopMSHS/TwitterBert1/ModelTraining.R', echo=TRUE)
+  ###########################################################################################################
+  
+  drops<-c("GeneSymbol","tweet_id","text_clean","user_id")
+  ans2<-ans[!(ans$is_gene == 'No class'),!names(ans) %in% drops]
+  ans2$is_gene<-factor(ans2$is_gene)
+  
+  # ***** stop if there is not enough data ******
+  # need at least 10 records
+  
+  if( nrow(ans2) > 10){
+    
+    # split to training and testing
+    id_train <- sample(nrow(ans2),nrow(ans2)*0.70)
+    training = ans2[id_train,]
+    testing = ans2[-id_train,]
+    
+    ctrl <- trainControl(method="repeatedcv", number = 10, repeats = 3)
+    
+    cl <- makeCluster(4)
+    registerDoParallel(cl)
+    set.seed(123)
+    final_model <- train(is_gene ~ ., data = training,
+                         method = "rf",
+                         na.action = na.omit,
+                         trControl = ctrl)
+    
+    stopCluster(cl)
+    registerDoSEQ()
+    
+    # save the model
+    # saveRDS(final_model, "./final_model.rds")
+    
+    # predcition results on test dataset
+    gbt.tfidf.predict<-predict(final_model, newdata = testing)
+    a<-confusionMatrix(testing$is_gene, gbt.tfidf.predict, positive="1")
+    print(paste0("Accuracy: ", round(a$overall[1],2),"; Precision:", round(a$byClass[5],2), "; Recall:", round(a$byClass[6],2),"; F1-score: ",round(a$byClass[7],2)))
+    
+    # "Accuracy: 0.95; Precision:0.67; Recall: 0.83; F1-score: 0.74"
+    
     ###########################################################################################################
-    # TFIDF
-    ###########################################################################################################
-    # use these predictors to predict if the tweet is gene-related or not (manual labeling):
-    # numeric: <tf-idf vectors>
-    # (1) numeric: <cosine similarity> between tweets and gene description
-    # (2) bonary: <gene-symbol in tweet>
     
-    text_corpus = Corpus(VectorSource(ans$text_clean))
-    text_corpus = tm_map(text_corpus, content_transformer(tolower))
-    text_corpus = tm_map(text_corpus, removeNumbers)
-    text_corpus = tm_map(text_corpus, removePunctuation)
-    text_corpus = tm_map(text_corpus, removeWords, c("the", "and", stopwords("english")))
-    text_corpus =  tm_map(text_corpus, stripWhitespace)
+    # load the best model
+    # final_model <- readRDS("./final_model.rds")
     
-    # To reduce the dimension of the DTM, we remove less terms with low tf-idf score such that the sparsity is less than 0.95.
-    text_dtm_tfidf <- DocumentTermMatrix(text_corpus, control = list(weighting = weightTfIdf))
-    text_dtm_tfidf = removeSparseTerms(text_dtm_tfidf, 0.95)
-    ans <- cbind(ans, as.matrix(text_dtm_tfidf))
+    # remove NA rows
+    plotdata <- na.omit(ans)
+    
+    # make a predictions on the "new data" using the final model
+    plotdata$final_predictions <- predict(final_model, plotdata[,!names(plotdata) %in% drops] )
+    
+    #---------- Plot barchart ----------------------------------------------------------------------------------------------------------
+    # The plot chart and the networks are based on the prediction of Random Forest.
+    
+    # keep only tweets that the model predicted as gene-related and have no label OR tweets that were automatically labeled as gene-related 
+    plotdata<-plotdata[ (plotdata$final_predictions==1 & plotdata$is_gene=='No class') | plotdata$is_gene==1,]
+    
+    counts <- table(plotdata$GeneSymbol)
+    counts<-data.frame(counts)
+    counts<-counts[order(counts$Freq,decreasing=TRUE),]
+    
+    data <- data.frame(counts$Var1, counts$Freq, stringsAsFactors = FALSE)
+    names(data)<-c("gene", "freq")
+    
+    data<-data[!is.na(data$gene),]
+    data$gene <- factor(data$gene, levels = unique(data$gene)[order(data$freq, decreasing = FALSE)])
+    dataM<-head(data,0.05*length(data$gene)) # get the top 5% genes that people talked about.
+    dataM$gene<-toupper(dataM$gene)
+    
+    pth<-paste0(PTH,'output/barplot.jpg')
+    jpeg(pth, width = 5, height = 5, units = 'in', res = 300)
+    p<-ggplot(dataM,aes(x= reorder(gene,freq),log(freq)  )) +
+      geom_bar(stat ="identity", fill="blue", colour="white") +
+      ggtitle("Tweets distribution of the top 5% tweeted genes") +
+      ylab("log(tweets)") +
+      xlab("Gene Symbol") +
+      coord_flip() 
+    print(p)
+    dev.off()
+    
+    write.csv(data, file= paste0(PTH,"/output/barplot_data.csv"))
+    print(paste0("------- bar plot completed------- in ", pth))
+    
+    #----------- create gene-user graph -------------------------------------------------------------------------
+    
+    plotdata$GeneSymbol<-toupper(plotdata$GeneSymbol)
+    
+    edges<-plotdata[,c('user_id','GeneSymbol')]
+    edges<-sqldf("select user_id,GeneSymbol,count(1) as weight from plotdata group by user_id,GeneSymbol")
+    g<-graph_from_data_frame(edges, directed=TRUE)
+    
+    V(g)$type <-bipartite_mapping(g)$type # automatically detect the type of nodes in a two-mode network
+    
+    V(g)$color <- ifelse(V(g)$type, "lightblue", "red")
+    V(g)$shape <- ifelse(V(g)$type, "square", 'circle')
+    E(g)$color <- "lightgray"
+    V(g)$label.color <- "black"
+    V(g)$frame.color <-  "gray"
+    V(g)$name<-toupper(V(g)$name)
+    
+    igraph::V(g)$size <- igraph::degree(g)*0.01
+    V(g)$label.cex <- igraph::degree(g)*0.05
+    
+    igraph::V(g)$size <- 0.01
+    V(g)$label.cex <- igraph::degree(g) -200
     
     
-    ###########################################################################################################
-    # TRAINING MODELs 
-    # source('~/Google Drive/DesktopMSHS/TwitterBert1/ModelTraining.R', echo=TRUE)
-    ###########################################################################################################
+    #----------- Converting Two-Mode to One-Mode Networks --------------------------------------------------------
+    projected_g <- bipartite_projection(g, multiplicity = TRUE)
+    genes_projected <- projected_g$proj2
+    user_projected<-projected_g$proj1
+    rm(projected_g)
     
-    drops<-c("GeneSymbol","tweet_id","text_clean","user_id")
-    ans2<-ans[!(ans$is_gene == 'No class'),!names(ans) %in% drops]
-    ans2$is_gene<-factor(ans2$is_gene)
+    V(genes_projected)$size=4
+    V(genes_projected)$label.cex <- 0.5
+    V(genes_projected)$color <- "lightblue"
+    V(genes_projected)$label.cex = 0.5
     
-    # ***** stop if there is not enough data ******
-    # need at least 10 records
+    # decompose a graph to components but plot only largest component.
+    g_plot <- decompose(genes_projected, min.vertices=2,max.comps = 1) 
     
-    if( nrow(ans2) > 10){
-    
-      # split to training and testing
-      id_train <- sample(nrow(ans2),nrow(ans2)*0.70)
-      training = ans2[id_train,]
-      testing = ans2[-id_train,]
+    if( length(g_plot) > 0 ) {
+      #keep nodes with wights lower than 1
+      med<-as.integer(median(degree(g_plot[[1]]) + sd(degree(g_plot[[1]]))) )
+      del<-degree(g_plot[[1]]) <  med 
+      del<-del[!is.na(del)]
+      g<-delete.vertices(simplify(g_plot[[1]]), del  )
       
-      ctrl <- trainControl(method="repeatedcv", number = 10, repeats = 3)
+      #Color scaling function
+      c_scale <- colorRamp(c('white','gray','orange', 'red'))
       
-      cl <- makeCluster(4)
-      registerDoParallel(cl)
-      set.seed(123)
-      final_model <- train(is_gene ~ ., data = training,
-                            method = "rf",
-                            trControl = ctrl)
+      #Applying the color scale to edge weights.
+      #rgb method is to convert colors to a character vector.
+      E(g)$color = apply(c_scale(E(g)$weight/max(E(g)$weight)), 1, function(x) rgb(x[1]/255,x[2]/255,x[3]/255) )
       
-      stopCluster(cl)
-      registerDoSEQ()
-      
-      # save the model
-      # saveRDS(final_model, "./final_model.rds")
-      
-      # predcition results on test dataset
-      gbt.tfidf.predict<-predict(final_model, newdata = testing)
-      a<-confusionMatrix(testing$is_gene, gbt.tfidf.predict, positive="1")
-      print(paste0("Accuracy: ", round(a$overall[1],2),"; Precision:", round(a$byClass[5],2), "; Recall:", round(a$byClass[6],2),"; F1-score: ",round(a$byClass[7],2)))
-      
-      # "Accuracy: 0.95; Precision:0.67; Recall: 0.83; F1-score: 0.74"
-      
-      ###########################################################################################################
-      
-      # load the best model
-      # final_model <- readRDS("./final_model.rds")
-      
-      # remove NA rows
-      plotdata <- na.omit(ans)
-      
-      # make a predictions on the "new data" using the final model
-      plotdata$final_predictions <- predict(final_model, plotdata[,!names(plotdata) %in% drops] )
-      
-      #---------- Plot barchart ----------------------------------------------------------------------------------------------------------
-      # The plot chart and the networks are based on the prediction of Random Forest.
-      
-      # keep only tweets that the model predicted as gene-related and have no label OR tweets that were automatically labeled as gene-related 
-      plotdata<-plotdata[ (plotdata$final_predictions==1 & plotdata$is_gene=='No class') | plotdata$is_gene==1,]
-        
-      counts <- table(plotdata$GeneSymbol)
-      counts<-data.frame(counts)
-      counts<-counts[order(counts$Freq,decreasing=TRUE),]
-      
-      data <- data.frame(counts$Var1, counts$Freq, stringsAsFactors = FALSE)
-      names(data)<-c("gene", "freq")
-      
-      data<-data[!is.na(data$gene),]
-      data$gene <- factor(data$gene, levels = unique(data$gene)[order(data$freq, decreasing = FALSE)])
-      dataM<-head(data,0.05*length(data$gene)) # get the top 5% genes that people talked about.
-      dataM$gene<-toupper(dataM$gene)
-      
-      pth<-paste0(PTH,'output/barplot.jpg')
-      jpeg(pth, width = 5, height = 5, units = 'in', res = 300)
-      p<-ggplot(dataM,aes(x= reorder(gene,freq),freq)) +
-        geom_bar(stat ="identity", fill="blue", colour="white") +
-        ggtitle("Tweets distribution of the top 5% tweeted genes") +
-        ylab("tweets") +
-        xlab("Gene Symbol") +
-        coord_flip() 
-      print(p)
+      pth<-paste0(PTH,'output/gene_gene_graph.jpg')
+      jpeg(pth, width = 6, height = 6, units= 'in', res = 300)
+      plot(g)
+      #plot(g, edge.arrow.size=0.2,layout=layout_with_kk(g), edge.width= E(g)$weight ) 
+      dates<-paste0("Main Connected Componnent of a Gene-Gene Network \n  degree(node) < median(degree) + std 
+                        Gray: low edge weight, Red: high edge weight")
+      title(dates,cex.main=1,col.main="black",cex.main = 1)
       dev.off()
       
-      write.csv(data, file= paste0(PTH,"/output/barplot_data.csv"))
-      print(paste0("------- bar plot completed------- in ", pth))
-      
-      #----------- create gene-user graph -------------------------------------------------------------------------
-      
-      plotdata$GeneSymbol<-toupper(plotdata$GeneSymbol)
-      
-      edges<-plotdata[,c('user_id','GeneSymbol')]
-      edges<-sqldf("select user_id,GeneSymbol,count(1) as weight from plotdata group by user_id,GeneSymbol")
-      g<-graph_from_data_frame(edges, directed=TRUE)
-      
-      V(g)$type <-bipartite_mapping(g)$type # automatically detect the type of nodes in a two-mode network
-       
-      V(g)$color <- ifelse(V(g)$type, "lightblue", "red")
-      V(g)$shape <- ifelse(V(g)$type, "square", 'circle')
-      E(g)$color <- "lightgray"
-      V(g)$label.color <- "black"
-      V(g)$frame.color <-  "gray"
-      V(g)$name<-toupper(V(g)$name)
-      
-      igraph::V(g)$size <- igraph::degree(g)*0.01
-      V(g)$label.cex <- igraph::degree(g)*0.05
-      
-      igraph::V(g)$size <- 0.01
-      V(g)$label.cex <- igraph::degree(g) -200
-      
-      
-      #----------- Converting Two-Mode to One-Mode Networks --------------------------------------------------------
-      projected_g <- bipartite_projection(g, multiplicity = TRUE)
-      genes_projected <- projected_g$proj2
-      user_projected<-projected_g$proj1
-      rm(projected_g)
-      
-      V(genes_projected)$size=4
-      V(genes_projected)$label.cex <- 0.5
-      V(genes_projected)$color <- "lightblue"
-      V(genes_projected)$label.cex = 0.5
-      
-      # decompose a graph to components but plot only largest component.
-      g_plot <- decompose(genes_projected, min.vertices=2,max.comps = 1) 
-      
-      if( length(g_plot) > 0 ) {
-          #keep nodes with wights lower than 1
-          med<-as.integer(median(degree(g_plot[[1]]) + sd(degree(g_plot[[1]]))) )
-          del<-degree(g_plot[[1]]) <  med 
-          del<-del[!is.na(del)]
-          g<-delete.vertices(simplify(g_plot[[1]]), del  )
-          
-          #Color scaling function
-          c_scale <- colorRamp(c('white','gray','orange', 'red'))
-          
-          #Applying the color scale to edge weights.
-          #rgb method is to convert colors to a character vector.
-          E(g)$color = apply(c_scale(E(g)$weight/max(E(g)$weight)), 1, function(x) rgb(x[1]/255,x[2]/255,x[3]/255) )
-          
-          pth<-paste0(PTH,'output/gene_gene_graph.jpg')
-          jpeg(pth, width = 6, height = 6, units= 'in', res = 300)
-          plot(g)
-          #plot(g, edge.arrow.size=0.2,layout=layout_with_kk(g), edge.width= E(g)$weight ) 
-          dates<-paste0("Main Connected Componnent of a Gene-Gene Network \n  degree(node) < median(degree) + std 
-                        Gray: low edge weight, Red: high edge weight")
-          title(dates,cex.main=1,col.main="black",cex.main = 1)
-          dev.off()
-          
-          # write genes (i.e. nodes) to file
-          # write.csv(V(genes_projected)$name,file=paste0(PTH,'output/geneListAll.csv'),row.names = FALSE)
-      }else{
-        print("gene-gene graph has less than 5 nodes")
-      }
+      # write genes (i.e. nodes) to file
+      # write.csv(V(genes_projected)$name,file=paste0(PTH,'output/geneListAll.csv'),row.names = FALSE)
     }else{
-      print("Stoped analysis: less than 10 records")
+      print("gene-gene graph has less than 5 nodes")
     }
+  }else{
+    print("Stoped analysis: less than 10 records")
+  }
   # tweet!
   system("python3 /app/Tweet.py")
 }else{
   print("No weekly ananysis, only on Friday")
 }
-
-
