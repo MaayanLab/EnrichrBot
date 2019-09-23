@@ -25,11 +25,10 @@ FOLDER = f.readline()
 f.close()
 
 df = pd.read_csv(os.path.join(PTH,'bert/data/bert_full_result_'+FOLDER+'.csv'), dtype=str)
-df =   df['tweet_created_at' != df['tweet_created_at']]
-df['tweet_created_at'] = pd.to_datetime(df['tweet_created_at'], format = '%a %b %d %H:%M:%S %z %Y')
+mask =  pd.to_datetime(df['tweet_created_at'], infer_datetime_format=True, errors='coerce')
 
-m = datetime.strptime(str(df['tweet_created_at'].min()),'%Y-%m-%d %H:%M:%S+00:00')
-M = datetime.strptime(str(df['tweet_created_at'].max()),'%Y-%m-%d %H:%M:%S+00:00')
+m = datetime.strptime(str(mask.min(skipna = True)),'%Y-%m-%d %H:%M:%S')
+M = datetime.strptime(str(mask.max(skipna = True)),'%Y-%m-%d %H:%M:%S')
 
 # authentication
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
@@ -41,12 +40,11 @@ geneNet = api.media_upload(os.path.join(PTH + "output/gene_gene_graph.jpg"))
 media_ids = [barplt.media_id_string, geneNet.media_id_string]
 
 # tweet with multiple images
-msg = "Gene discussion on Twitter between {} and {}.".format(format(m,'%b %d'), format(M,'%b %d'))
+frm=format(m,'%b %d')
+to=format(M,'%b %d')
+if frm == to:
+  msg = "Gene discussion on Twitter for {}.".format(frm)
+else:
+  msg = "Gene discussion on Twitter between {} and {}.".format(frm, to)
+  
 api.update_status(status=msg, media_ids=media_ids)
-
-
-
-
-
-
-
