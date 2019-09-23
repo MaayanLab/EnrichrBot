@@ -298,19 +298,17 @@ if(day == 1){
           pth<-paste0(PTH,'output/gene_gene_graph.jpg')
           jpeg(pth, width = 6, height = 6, units= 'in', res = 300)
           layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
-          plot(g,col = colfunc(20))
-          txt<-paste0("Main Connected Componnent of a Gene-Gene Network.\n")
-          title(main=txt,
-                sub =  "Edge connects genes co-mentioned by a user.\n",
-                cex.main=0.6,col.main="black", cex=0.6)
-          mtext("Node's degree is smaller than the median degree pluse one stdev",
-                side=4, line=1, cex.lab=0.8,las=1, col="blue")
-          
-          text(0, 0, , cex = .8,adj = 1)
-          colfunc <- colorRampPalette(c("red","gray"))
+          txt1<-"Main Connected Componnent of a Gene-Gene Network."
+          txt2<-"Connected genes (nodes) are co-mentioned by a user."
+          txt3<-expression(paste("Node's degree is smaller than the median degree pluse ", sigma) )
+          plot(g, col = colfunc(20))
+          title(txt1,cex.main=0.6)
+          title(txt2,cex.main=0.5, line = 1)
+          title(txt3,cex.main=0.5, line = 0)
+          colfunc <- colorRampPalette(c('red','orange','gray', 'white'))
           # plot legend
           legend_image <- as.raster(matrix(colfunc(20), ncol=1))
-          plot(c(0,1),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = '#co-mentions',cex.main=0.5)
+          plot(c(0,1),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = '#co-mentions',cex.main=0.5, line=0)
           text(x=1.2, y = seq(0,1,l=3), labels = seq(min(E(g)$weight),max(E(g)$weight),l=3),cex=0.5)
           rasterImage(legend_image, 0, 0, 1,1)
           dev.off()
