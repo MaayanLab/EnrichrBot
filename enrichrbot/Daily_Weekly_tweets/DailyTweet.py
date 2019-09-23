@@ -65,8 +65,8 @@ def tweet(gene, tweet_id):
   auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
   api = tweepy.API(auth)
   # Construct the tweet
-  message = "Related info about {} can be found here: \n{}\n{}\n{}\n{}"
-  message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@MaayanLab")
+  message = "Explore prior knowledge & functional predictions for {}.\n{}\n{}\n{}\n{}"
+  message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@MaayanLab @BD2KLINCSDCIC")
   # Send the tweet with photos
   ps = [api.media_upload(screenshot) for screenshot in screenshots]
   media_ids = [p.media_id_string for p in ps]
@@ -85,7 +85,3 @@ def main_tweet:
 
 if __name__ == '__main__':
   main_tweet()
-  
-  
-
-
