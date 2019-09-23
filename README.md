@@ -1,7 +1,8 @@
 # EnrichrBot
 
-This repository contains data processing and twitter interfacing scripts for the EnrichrBot.
+This script runs the Enrichr bot.
 
-- snps_to_genes: Process data from UK Biobank
-- genes_to_enrichr: Submit genes processed by snps_to_genes to Enrichr and obtain screenshots/enrichr links
-- enrichrbot: Reply to GWASbot with significant results
+- `/reply_to_preprocessed_SWASbot.py`: Download SbotGwa's posts and extract the identifier being posted. Then use the Enrichr-processed results file to reply with the enrichr link and the screenshot.
+  This script is meant to run as a cronjob once a day.
+- `/random_from_preprocessed`: Randomly tweet one of the enrichr results in `../results/results.tsv`
+- `/random_from_enrichr`: Exclusive enrichr API use--allows you to tweet from a randomly chosen Enrichr library genesets
