@@ -135,7 +135,7 @@ write.csv(ReplyGenes,file=paste0(PTH,'output/ReplyGenes.csv'),row.names = FALSE)
 
 
 # if today is Friday --> prepare a weekly report be exectuting the below code. 
-if(day == 1){
+if(day == 5){
   print("Starting weekly ananysis")
     ###########################################################################################################
     # TFIDF
@@ -166,6 +166,7 @@ if(day == 1){
     drops<-c("GeneSymbol","tweet_id","text_clean","user_id")
     ans2<-ans[!(ans$is_gene == 'No class'),!names(ans) %in% drops]
     ans2$is_gene<-factor(ans2$is_gene)
+    ans2<-na.omit(ans2)
     
     # ***** stop if there is not enough data ******
     # need at least 10 records
@@ -193,8 +194,8 @@ if(day == 1){
       # saveRDS(final_model, "./final_model.rds")
       
       # predcition results on test dataset
-      gbt.tfidf.predict<-predict(final_model, newdata = testing)
-      a<-confusionMatrix(testing$is_gene, gbt.tfidf.predict, positive="1")
+      gbt.tfidf.predict<-predict(final_model, newdata = na.omit(testing))
+      a<-confusionMatrix(na.omit(testing$is_gene), gbt.tfidf.predict, positive="1")
       print(paste0("Accuracy: ", round(a$overall[1],2),"; Precision:", round(a$byClass[5],2), "; Recall:", round(a$byClass[6],2),"; F1-score: ",round(a$byClass[7],2)))
       
       # "Accuracy: 0.95; Precision:0.67; Recall: 0.83; F1-score: 0.74"
@@ -297,20 +298,20 @@ if(day == 1){
           # plot graph
           pth<-paste0(PTH,'output/gene_gene_graph.jpg')
           jpeg(pth, width = 6, height = 6, units= 'in', res = 300)
-          layout(matrix(1:2,ncol=2), width = c(2,1),height = c(1,1))
           txt1<-"Main Connected Componnent of a Gene-Gene Network."
           txt2<-"Connected genes (nodes) are co-mentioned by a user."
           txt3<-expression(paste("Node's degree is smaller than the median degree pluse ", sigma) )
-          plot(g, col = colfunc(20))
-          title(txt1,cex.main=0.6)
-          title(txt2,cex.main=0.5, line = 1)
-          title(txt3,cex.main=0.5, line = 0)
           colfunc <- colorRampPalette(c('red','orange','gray', 'white'))
+          layout(matrix(1:2,ncol=2), width = c(3,1),height = c(1,1))
+          plot(g, col = colfunc(20))
+          title(txt1,cex.main=0.6,family="Times New Roman")
+          title(txt2,cex.main=0.5, line = 1,family="Times New Roman")
+          title(txt3,cex.main=0.5, line = 0,family="Times New Roman")
           # plot legend
-          legend_image <- as.raster(matrix(colfunc(20), ncol=1))
-          plot(c(0,1),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = '#co-mentions',cex.main=0.5, line=0)
+          legend_image <- as.raster(matrix(colfunc(4), ncol=1))
+          plot(c(0,1),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = '\n\n #co-mentions',cex.main=0.5,family="Times New Roman")
           text(x=1.2, y = seq(0,1,l=3), labels = seq(min(E(g)$weight),max(E(g)$weight),l=3),cex=0.5)
-          rasterImage(legend_image, 0, 0, 1,1)
+          rasterImage(legend_image, 0, 0, 0.2,1)
           dev.off()
           
           # write genes (i.e. nodes) to file
