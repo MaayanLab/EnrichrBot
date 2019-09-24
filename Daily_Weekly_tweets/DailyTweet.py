@@ -12,7 +12,7 @@ import tweepy
 load_dotenv(verbose=True)
  
 # get environment vars from .env
-PTH = os.environ.get('PTH') # "/home/maayanlab/enrichrbot/"
+PTH = os.environ.get('PTH') # PTH="/home/maayanlab/enrichrbot/"
 CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
 ACCESS_TOKEN = os.environ.get('ACCESS_TOKEN')
 ACCESS_TOKEN_SECRET = os.environ.get('ACCESS_TOKEN_SECRET')
@@ -30,7 +30,6 @@ def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   options.add_argument('--window-size={}'.format(windowSize))
   driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH,options=options)
   return driver
-
 
 #This goes to a link and takes a screenshot
 def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
@@ -67,6 +66,8 @@ def tweet(gene, tweet_id):
   # Construct the tweet
   message = "Explore prior knowledge & functional predictions for {}.\n{}\n{}\n{}\n{}"
   message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@MaayanLab @BD2KLINCSDCIC")
+  # message = "Related info about {} can be found here: \n{}\n{}\n{}\n{}"
+  # message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@MaayanLab")
   # Send the tweet with photos
   ps = [api.media_upload(screenshot) for screenshot in screenshots]
   media_ids = [p.media_id_string for p in ps]
@@ -74,14 +75,23 @@ def tweet(gene, tweet_id):
     print('tweet: {} {}'.format(message, media_ids))
   else:
     # post a reply
-    api.update_status(status = message, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True, media_ids=media_ids)
-
+    try:
+      api.update_status(status = message, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True, media_ids=media_ids)
+    except Exception as e:
+      print(e)
+      
 # post a reply to each tweet that was found
 def main_tweet():
   df= pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"))
+  reply_counter = 0
   for tweet_id in df['tweet_id']:
-    gene = df[df.tweet_id==tweet_id].iloc[0][2]
-    tweet(gene, tweet_id)
+    if reply_counter >5 | (df[df['tweet_id']==tweet_id]['user_id'] ==1146058388452888577).item(): # tweet up to 5 replies that are not by Enrichrbot
+      break
+    else:
+      reply_counter = reply_counter +1
+      gene = df[df.tweet_id==tweet_id].iloc[0][2]
+      tweet(gene, tweet_id)
+      time.sleep(10)
 
 if __name__ == '__main__':
   main_tweet()
