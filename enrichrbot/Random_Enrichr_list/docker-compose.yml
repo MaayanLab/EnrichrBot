@@ -1,6 +1,0 @@
-version: '3'
-services:
-  enrichrbot:
-    build: .
-    image: maayanlab/enrichrbot-random-from-enrichr:1.0.2
-    env_file: .env

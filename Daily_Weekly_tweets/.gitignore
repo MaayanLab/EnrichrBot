@@ -1,0 +1,11 @@
+bert/
+data/
+output/
+tweets/
+screenshots/
+gene_info.rds
+.DS_Store
+.Rhistory
+.env
+HelpFunctions.R
+ModelTraining.R

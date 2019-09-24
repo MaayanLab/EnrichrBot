@@ -1,0 +1,5 @@
+pandas==0.25.0
+python-dotenv==0.10.3
+tweepy==3.8.0
+requests==2.20.0
+selenium==3.141.0

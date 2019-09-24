@@ -1,0 +1,4 @@
+.env
+*.png
+.DS_Store
+geckodriver.log

@@ -1,2 +1,0 @@
-_rinterface_cffi
-rpy2

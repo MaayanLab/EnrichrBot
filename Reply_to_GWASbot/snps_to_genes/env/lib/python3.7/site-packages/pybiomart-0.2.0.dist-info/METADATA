@@ -1,0 +1,34 @@
+Metadata-Version: 2.0
+Name: pybiomart
+Version: 0.2.0
+Summary: A simple pythonic interface to biomart.
+Home-page: https://github.com/jrderuiter/pybiomart
+Author: Julian de Ruiter
+Author-email: julianderuiter@gmail.com
+License: MIT
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Requires-Dist: future
+Requires-Dist: pandas
+Requires-Dist: requests
+Requires-Dist: requests-cache
+Provides-Extra: dev
+Requires-Dist: bumpversion; extra == 'dev'
+Requires-Dist: pytest (>=2.7); extra == 'dev'
+Requires-Dist: pytest-cov; extra == 'dev'
+Requires-Dist: pytest-helpers-namespace; extra == 'dev'
+Requires-Dist: pytest-mock; extra == 'dev'
+Requires-Dist: python-coveralls; extra == 'dev'
+Requires-Dist: sphinx; extra == 'dev'
+Requires-Dist: sphinx-autobuild; extra == 'dev'
+Requires-Dist: sphinx-rtd-theme; extra == 'dev'
+
+UNKNOWN
+
+

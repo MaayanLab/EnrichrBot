@@ -1,9 +1,0 @@
-data -> primary_snapshot_data -> allele_annotations -> assembly_annotation -> genes -> locus
-
-1. get rsid from tsv created from tabix command
-2. format so only number (remove 'rs')
-3. create request url
-4. call request url
-5. store in variable 'data'
-6. get name of gene with the following: data['primary_snapshot_data']['allele_annotations'][0]['assembly_annotation'][0]['genes'][0]['locus']
-7. use time.sleep(1) to limit to 1 request/second (noted on API website)
