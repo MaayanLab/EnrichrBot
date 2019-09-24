@@ -12,7 +12,7 @@
       <br><br>
 <b>- Folder: /random_IDG_gene: <br><br>
     * [TASK4]</b> Every day, EnrichrBot randomly selects a gene symbol from the list of >300 Illuminating the Druggable Genome (IDG) NIH Common Fund program gene of interest. It then tweets links to Harmonizome, ARCHS4, Pharos, and Geneshot providing means to explore more information about the potential target, including predictions about the target functions and associated human phenotypes.
-   <ul><li> This functions also facilitates an automatic follow back to followers. </li></ul>
+   <ul><li> This function also facilitates an automatic follow back to followers. </li></ul>
       <br><br>
 <b>- Folder: /reply_to_GWASbot <br><br>
     * [TASK5]</b> EnrichrBot listens to the daily tweet of GWASbot. GWASbot posts a Manhattan plot and link to called variants file created from a GWAS conducted on the UK Biobank by the Neale Lab. EnrichrBot processes the called variants file to associate variants with genes. It then submits the list of identified genes for analysis with Enrichr. The EnrichrBot tweet contains a link to the analysis of the gene set with Enrichr and a screenshot from such analysis.
