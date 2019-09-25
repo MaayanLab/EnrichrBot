@@ -136,7 +136,7 @@ print("Finished! Go to folder:",os.path.join(PTH,"tweets",FOLDER,"full_data.csv.
 #================================================================
 
 path1=os.path.join(PTH,"tweets",FOLDER,"full_data.csv.gz")
-df=pd.read_csv(path1,compression='gzip',dtype=str,lineterminator='\n')
+df=pd.read_csv(path1,compression='gzip',dtype=str)
 df['index_col'] = df.index
 
 # Creating test dataframe according to BERT format
@@ -145,8 +145,3 @@ df_bert_test = pd.DataFrame({'index_col':df['index_col'],'text':df['text'].repla
 # write file to disc
 df_bert_test.to_csv(os.path.join(PTH,'bert/data/test.tsv'), sep='\t', index=False, header=True)
 print("file for bert saved in " + os.path.join(PTH,'bert/data/test.tsv'))
-
-
-
-
-

@@ -19,44 +19,45 @@ from pathlib import Path
 
 # load var from .env file
 load_dotenv()
-PTH = os.environ.get('PTH') # '/users/alon/desktop/GitHub/TwitterBert1/'
+PTH = os.environ.get('PTH') # PTH ='/home/maayanlab/enrichrbot/'
 
 #================================================================
 # open a new directory every Monday
 #================================================================
-
-# Monday is 0 and Sunday is 6
-# if its Monday --> open a new folder
-# else --> save tweets in the latest existing folder
-
-fileName = Path(os.path.join(PTH,'tweets/folder.txt'))
-if fileName.is_file():
-  print ("File exist")
-  d = date.today().weekday()
+# open log file
+log_file = os.path.join(PTH,"output","log.txt") # open log file
+if Path(log_file).is_file():
+  print (log_file, "exists")
 else:
-  print ("File not exist")
-  d = 0 # use on first run where file do not exist
-
-if d == 0: # if todayt is Mon open a new folder
-  log = open( os.path.join(PTH,"output","log.txt"), "a")
-  logfolder = open( os.path.join(PTH,"tweets","folder.txt"), "w")
-  FOLDER = str(calendar.timegm(time.gmtime()))
-  path = os.path.join(PTH,"tweets",FOLDER)
-  try:
-    os.mkdir(path)
-    print ("Successfully created the directory %s" % path)
-    log.write("Successfully created the directory %s" % path)
-    logfolder.write(FOLDER)
-  except OSError:
-    print ("Directory creation %s failed" % path)
-    log.write("Directory creation %s failed" % path)
-  log.close()
+  print ("opening", log_file)
+  logfolder = open( log_file, "a")
   logfolder.close()
+
+# open folder file
+fileName = os.path.join(PTH,'tweets/folder.txt')
+if Path(fileName).is_file():
+  print (fileName," exists")
 else:
-  f = open(os.path.join(PTH,'tweets/folder.txt'))
-  FOLDER = f.readline()
-  f.close()
-  path = os.path.join(PTH,"tweets",FOLDER)
+  print ("creating", fileName)
+  logfolder = open( fileName, "w")
+  logfolder.close()
+
+# open a new folder every day to contain the json tweets
+FOLDER = str(round(calendar.timegm(time.gmtime())/86400))
+path = os.path.join(PTH,"tweets",FOLDER)
+try:
+  os.mkdir(path)
+  print("Successfully created the directory %s" % path)
+except:
+  print("FOLDER exists")
+  
+# write to log file
+with open(os.path.join(PTH,"output","log.txt"), 'a') as file:
+  file.write("Successfully created the directory %s \n" % path)
+  
+# write the curent folder name to file
+with open(fileName, 'w') as file:
+  file.write(FOLDER)
 
 #================================================================
 # collect tweets in parallel

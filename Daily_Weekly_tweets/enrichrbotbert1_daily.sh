@@ -1,10 +1,11 @@
 #!/bin/bash
-
+ 
 if [ -z "${PTH}" ]; then
-  export PTH="$(dirname $0)/"
+   export PTH="$(dirname $0)/"
 fi
 
-day=$(date +"%u")
+WEEK=$(date +%U)
+DAY=$(date +%u)
 
 echo "collecting tweets"
 python3 ./app/CollectTweets.py || exit 1
@@ -21,8 +22,10 @@ python3 ./app/bert/run_classifier.py \
     --max_seq_length=400 \
     --output_dir=./app/bert/bert_output/ || exit 1
 
-python3 ./app/softmax_decision.py || exit 1
+python3 ./app/softmax_decision.py $WEEK || exit 1
 
-Rscript ./app/Bert2Net.R $day || exit 1
+Rscript ./app/Daily_stats.R || exit 1
 
 python3 ./app/DailyTweet.py
+
+Rscript ./app/Weekly_stats.R $DAY $WEEK

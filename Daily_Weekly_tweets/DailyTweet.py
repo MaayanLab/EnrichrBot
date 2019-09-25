@@ -31,6 +31,7 @@ def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH,options=options)
   return driver
 
+
 #This goes to a link and takes a screenshot
 def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
   print('Capturing screenshot...')
@@ -64,10 +65,8 @@ def tweet(gene, tweet_id):
   auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
   api = tweepy.API(auth)
   # Construct the tweet
-  message = "Explore prior knowledge & functional predictions for {}.\n{}\n{}\n{}\n{}"
-  message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@MaayanLab @BD2KLINCSDCIC")
-  # message = "Related info about {} can be found here: \n{}\n{}\n{}\n{}"
-  # message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@MaayanLab")
+  message = "Explore prior knowledge & functional predictions for {} with @MaayanLab #Bioinformatics.\n{}\n{}\n{}\n{}"
+  message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@DruggableGenome @BD2KLINCSDCIC")
   # Send the tweet with photos
   ps = [api.media_upload(screenshot) for screenshot in screenshots]
   media_ids = [p.media_id_string for p in ps]
