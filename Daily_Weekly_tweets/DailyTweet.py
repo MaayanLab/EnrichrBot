@@ -84,7 +84,7 @@ def main_tweet():
   df= pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"))
   reply_counter = 0
   for tweet_id in df['tweet_id']:
-    if reply_counter >5 | (df[df['tweet_id']==tweet_id]['user_id'] ==1146058388452888577).item(): # tweet up to 5 replies that are not by Enrichrbot
+    if reply_counter >10 | (df[df['tweet_id']==tweet_id]['user_id'] ==1146058388452888577)[0]: # tweet up to 10 replies NOT by Enrichrbot
       break
     else:
       reply_counter = reply_counter +1

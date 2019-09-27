@@ -12,6 +12,7 @@ python3 ./app/CollectTweets.py || exit 1
 
 python3 ./app/EnrichrBert1.py || exit 1
 
+echo "Starting bert"
 python3 ./app/bert/run_classifier.py \
     --task_name=cola \
     --do_predict=true \
@@ -22,10 +23,13 @@ python3 ./app/bert/run_classifier.py \
     --max_seq_length=400 \
     --output_dir=./app/bert/bert_output/ || exit 1
 
+echo "softmax"
 python3 ./app/softmax_decision.py $WEEK || exit 1
 
+echo "Daily stats"
 Rscript ./app/Daily_stats.R || exit 1
 
+echo "tweeting"
 python3 ./app/DailyTweet.py
 
 Rscript ./app/Weekly_stats.R $DAY $WEEK

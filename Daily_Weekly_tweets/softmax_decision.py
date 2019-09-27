@@ -14,8 +14,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
   
 load_dotenv()
-PTH = os.environ.get('PTH')
-WEEK = sys.argv[0]
+PTH = os.environ.get('PTH') # PTH = '/home/maayanlab/enrichrbot/'
+WEEK = str(sys.argv[0])
 
 # get the latest directory (collected json tweets from the current week are saved in that FOLDER)
 f = open(os.path.join(PTH,'tweets/folder.txt'))  # /home/maayanlab/enrichrbot/
@@ -102,3 +102,4 @@ if len(Alert)>0:
     print('Email sent!')
   except:
     print('Something is wrong')
+  

@@ -1,23 +1,25 @@
 # Statistics on the collected tweets
-library(readr)
-library(sqldf)
-library(igraph)
-library(stringr)
-library(text2vec)
-library(dplyr)
-library(tm)
-library(slam)
-library(doParallel)
-library(qdapRegex)
-library(caret)
-library(e1071)
-library(ggplot2)
-library(rpart)
-library(data.table)
-
 DAY <- commandArgs(trailingOnly=TRUE)[1]
 
 if(DAY == 5){ # if today is FRI execute a weekly tweet
+  
+  library(readr)
+  library(sqldf)
+  library(igraph)
+  library(stringr)
+  library(text2vec)
+  library(dplyr)
+  library(tm)
+  library(slam)
+  library(doParallel)
+  library(qdapRegex)
+  library(caret)
+  library(e1071)
+  library(ggplot2)
+  library(rpart)
+  library(data.table)
+  
+  
   # value from terminal
   WEEK <- commandArgs(trailingOnly=TRUE)[2]
   
@@ -314,3 +316,4 @@ if(DAY == 5){ # if today is FRI execute a weekly tweet
 }else{
   print("No weekly ananysis, only on Friday")
 }
+
