@@ -1,6 +1,6 @@
 # step 9: get softmax (probability of afiliating to a class) from BERT.
 # Decsides on a class for each tweet based on higher probability of class afiliation probability.
-
+import sys
 from dotenv import load_dotenv
 import pandas as pd
 import re
@@ -15,7 +15,7 @@ from email.mime.multipart import MIMEMultipart
   
 load_dotenv()
 PTH = os.environ.get('PTH') # PTH = '/home/maayanlab/enrichrbot/'
-WEEK = str(sys.argv[0])
+WEEK = sys.argv[1]
 
 # get the latest directory (collected json tweets from the current week are saved in that FOLDER)
 f = open(os.path.join(PTH,'tweets/folder.txt'))  # /home/maayanlab/enrichrbot/
@@ -102,4 +102,3 @@ if len(Alert)>0:
     print('Email sent!')
   except:
     print('Something is wrong')
-  
