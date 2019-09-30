@@ -55,7 +55,6 @@ else:
 #------------------------------------------------------------------------------------------------------------------------------
 # send alert email on new genes! 
 #------------------------------------------------------------------------------------------------------------------------------
-full_data = full_data[full_data['Is_Response']=='gene']
 df = pd.read_csv(os.path.join(PTH,'data/special_genes.csv'), dtype= str) # Load list of special genes
 
 L1 = df['Gene'].tolist()
@@ -70,19 +69,18 @@ Alert = list(L1 & L2)
 if len(Alert)>0:
   x=[]  
   for i in range(0,len(full_data)):
-    if full_data['GeneSymbol'].iloc[i] in Alert:
+    w = full_data['GeneSymbol'].iloc[i].lower()
+    if w in Alert:
       x.append(i)
 
   x = full_data.iloc[x]
   x = x[['GeneSymbol','Screen_name','text','tweet_id']]
-  x.to_csv(PTH + "output/Alert_genes.csv") # write results to file
+  x.to_csv(os.path.join(PTH , "output/Alert_genes.csv")) # write results to file
   
   tweets_ids=x['tweet_id'].tolist()
-  
+  tweets_ids = list(set(tweets_ids))
   tweets_ids = ', '.join(tweets_ids)
-  tweets_ids = set(tweets_ids)
-  tweets_ids = list(tweets_ids)
-  
+
   msg = MIMEMultipart()
   
   msg['To'] = os.environ.get('RECIPT')
@@ -102,3 +100,4 @@ if len(Alert)>0:
     print('Email sent!')
   except:
     print('Something is wrong')
+  
