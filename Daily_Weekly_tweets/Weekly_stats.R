@@ -18,12 +18,15 @@ if(DAY == 5){ # if today is FRI execute a weekly tweet
   library(ggplot2)
   library(rpart)
   library(data.table)
-  
+  library(dotenv)
   
   # value from terminal
+  
   WEEK <- commandArgs(trailingOnly=TRUE)[2]
   
-  PTH = '/app/'
+  load_dot_env(file = "/app/.env")
+  PTH = Sys.getenv("PTH")
+  #PTH = '/app/'
   
   filepath = paste0(PTH,'bert/data/bert_full_week_',WEEK,'.csv')  # path to BERT classification results
   bert_full_result <- read_csv(filepath)
@@ -304,7 +307,8 @@ if(DAY == 5){ # if today is FRI execute a weekly tweet
       # write.csv(V(genes_projected)$name,file=paste0(PTH,'output/geneListAll.csv'),row.names = FALSE)
       
       # tweet!
-      system("python3 /app/Tweet.py")
+      
+      system(paste0("python3 ",PTH,"Tweet.py",sep=""))
       
     }else{
       print("gene-gene graph has less than 5 nodes")
