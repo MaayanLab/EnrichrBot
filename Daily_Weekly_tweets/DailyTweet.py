@@ -96,7 +96,9 @@ def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
 def priority(data_frame):
   rare_genes = pd.read_csv(os.path.join(PTH,'data/autorif_gene_cout.csv'),dtype=str) # lower quintile or zero publications in AutoRIF.
   data_frame = pd.merge(data_frame, rare_genes, on='GeneSymbol', how='left')
-  data_frame = data_frame.sort_values(by=['count'],ascending=False) # sort asc
+  data_frame = data_frame.fillna(0) # a rare gene that is not in GeneRIF will get a zero score and will be prioritize
+  data_frame['count'] = data_frame['count'].astype(int)
+  data_frame = data_frame.sort_values(by=['count'],ascending=True) # sort asc
   return(data_frame)
     
 # post a reply to each tweet that was found
