@@ -5,46 +5,67 @@ import sys
 import tweepy
 import pandas as pd
 from datetime import datetime
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import re
+import requests
+import time
+import datetime
 
 #############################################################################################
-# Tweet
+# Weekly Tweet
 #############################################################################################
 load_dotenv()
 
 #get Enrichr credentials
-CONSUMER_KEY = os.environ.get('CONSUMER_KEY')
-CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
-ACCESS_TOKEN = os.environ.get('ACCESS_TOKEN')
-ACCESS_TOKEN_SECRET = os.environ.get('ACCESS_TOKEN_SECRET')
+CONSUMER_KEY = str(os.environ.get('CONSUMER_KEY'))
+CONSUMER_SECRET = str(os.environ.get('CONSUMER_SECRET'))
+ACCESS_TOKEN = str(os.environ.get('ACCESS_TOKEN'))
+ACCESS_TOKEN_SECRET = str(os.environ.get('ACCESS_TOKEN_SECRET'))
 
-PTH = os.environ.get('PTH')
+PTH = os.environ.get('PTH') # PTH = '/home/maayanlab/enrichrbot/'
+WEEK = str(sys.argv[1])
+m = str(sys.argv[2]) # minimun date from Weekly_stats.R
+M = str(sys.argv[3]) # maximum date from Weekly_stats.R
 
-# get the latest directory (collected json tweets from the current week are saved in that FOLDER)
-f = open(os.path.join(PTH,'tweets/folder.txt'))
-FOLDER = f.readline()
-f.close()
-
-df = pd.read_csv(os.path.join(PTH,'bert/data/bert_full_result_'+FOLDER+'.csv'), dtype=str)
-mask =  pd.to_datetime(df['tweet_created_at'], infer_datetime_format=True, errors='coerce')
-
-m = datetime.strptime(str(mask.min(skipna = True)),'%Y-%m-%d %H:%M:%S')
-M = datetime.strptime(str(mask.max(skipna = True)),'%Y-%m-%d %H:%M:%S')
-
-# authentication
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-api = tweepy.API(auth)
-
-barplt = api.media_upload(os.path.join(PTH,"output/barplot.jpg"))
-geneNet = api.media_upload(os.path.join(PTH + "output/gene_gene_graph.jpg"))
-media_ids = [barplt.media_id_string, geneNet.media_id_string]
-
-# tweet with multiple images
-frm=format(m,'%b %d')
-to=format(M,'%b %d')
-if frm == to:
-  msg = "Gene discussion on Twitter for {}.".format(frm)
-else:
-  msg = "Gene discussion on Twitter between {} and {}.".format(frm, to)
+def main_report_tweet():
+  # load collected tweets after bert
+  df = pd.read_csv(os.path.join(PTH,'bert/data/bert_full_week_'+WEEK+'.csv'), dtype=str)
   
-api.update_status(status=msg, media_ids=media_ids)
+  # authentication
+  auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+  auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+  api =tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+  
+  # load figures
+  barplt = api.media_upload(os.path.join(PTH,"output/barplot.jpg"))
+  geneNet = api.media_upload(os.path.join(PTH + "output/gene_gene_graph.jpg"))
+  EnrichrLink = api.media_upload(os.path.join(PTH + "screenshots/enrichr_week.png"))
+  GeneshotLink =api.media_upload(os.path.join(PTH + "screenshots/geneshot_week.png"))
+  media_ids = [barplt.media_id_string, geneNet.media_id_string, EnrichrLink.media_id_string,GeneshotLink.media_id_string]
+  
+  # tweet with multiple images
+  if m != M:
+    msg = "During the week from {} to {} @EnrichrBot found {} tweets about {} genes.\n".format(
+      m, M, len(df), len(set(df['GeneSymbol'])) 
+      )
+    msg = msg + 'These genes can be analyzed with #Enrichr and #Geneshot:\n {} {} \n {}'.format(
+      EnrichrLink,
+      GeneshotLink,
+      "@MaayanLab @BD2KLINCSDCIC @DruggableGenome #Bioinformatics #SystemsBiology"
+      )
+    api.update_status(status=msg, media_ids=media_ids)
+    # delete screenshots from folder
+    try:
+      os.remove(os.path.join(PTH + "screenshots/enrichr_week.png"))
+      os.remove(os.path.join(PTH + "screenshots/geneshot_week.png"))
+      os.remove(os.path.join(PTH, "output", "barplot.jpg"))
+      os.remove(os.path.join(PTH, "output", "gene_gene_graph.jpg"))
+      print("deleted weekly screenshots: gsht.png, archs4.png, harmo.png", str(datetime.datetime.now()))
+    except:
+      print("error deleting weekly photos")
+  else:
+    print('No weekly tweet B/C min(date) == max(date) in df.)
+
+if __name__ == '__main__':
+  main_report_tweet()

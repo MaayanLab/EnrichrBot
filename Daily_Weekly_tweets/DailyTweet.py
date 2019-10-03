@@ -8,6 +8,7 @@ import re
 import requests
 import sys
 import time
+import datetime
 import tweepy
 load_dotenv(verbose=True)
  
@@ -79,18 +80,38 @@ def tweet(gene, tweet_id):
     except Exception as e:
       print(e)
       
+
+def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
+  auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+  auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+  api = tweepy.API(auth)
+  last_tweets = api.user_timeline(screen_name = 'botenrichr', count = 50, include_rts = True)
+  for tweet in last_tweets:
+    data = tweet._json
+    if data['in_reply_to_user_id'] != None:
+      if data['in_reply_to_status_id'] in df_dat['tweet_id'].tolist():
+        df_dat = df_dat[df_dat.tweet_id != data['in_reply_to_status_id']]
+  return(df_dat)
+    
 # post a reply to each tweet that was found
 def main_tweet():
-  df= pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"))
+  df = pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"))
+  df = did_we_replied(df) # prevent reply to tweets that Enrichrbot replied before
   reply_counter = 0
   for tweet_id in df['tweet_id']:
-    if reply_counter >10 | (df[df['tweet_id']==tweet_id]['user_id'] ==1146058388452888577).tolist()[0]: # tweet up to 10 replies NOT by Enrichrbot
+    if reply_counter >2:  # tweet up to 2 replies 
       break
     else:
-      reply_counter = reply_counter +1
-      gene = df[df.tweet_id==tweet_id].iloc[0][2]
-      tweet(gene, tweet_id)
-      time.sleep(10)
+      if not (df[df['tweet_id']==tweet_id]['user_id'] ==1146058388452888577).tolist()[0]: # tweet is NOT by Enrichrbot
+        reply_counter = reply_counter +1
+        gene = df[df.tweet_id==tweet_id].iloc[0][2]
+        tweet(gene, tweet_id)
+        time.sleep(10)
+  # delete screenshots from folder     
+  os.remove(os.path.join(PTH, "screenshots", "gsht.png"))
+  os.remove(os.path.join(PTH, "screenshots", "archs4.png"))
+  os.remove(os.path.join(PTH, "screenshots", "harmo.png"))
+  print("deleted daily screenshots: gsht.png, archs4.png, harmo.png", str(datetime.datetime.now()))
 
 if __name__ == '__main__':
   main_tweet()

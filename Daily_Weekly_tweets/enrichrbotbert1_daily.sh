@@ -7,6 +7,8 @@ fi
 WEEK=$(date +%U)
 DAY=$(date +%u)
 
+python3 ./app/screenshots.py $WEEK
+
 echo "collecting tweets"
 python3 ./app/CollectTweets.py || exit 1
 
@@ -24,12 +26,13 @@ python3 ./app/bert/run_classifier.py \
     --output_dir=./app/bert/bert_output/ || exit 1
 
 echo "softmax"
-python3 ./app/softmax_decision.py $WEEK || exit 1
+python3 ./app/softmax_decision.py $WEEK
 
 echo "Daily stats"
 Rscript ./app/Daily_stats.R || exit 1
 
-echo "tweeting"
+echo "daily tweet"
 python3 ./app/DailyTweet.py
 
+echo "weekly tweet"
 Rscript ./app/Weekly_stats.R $DAY $WEEK

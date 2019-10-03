@@ -67,6 +67,9 @@ RUN set -x \
     install.packages('rpart')" \
   && R -e "options(repos = \
     list(CRAN = 'http://mran.revolutionanalytics.com/snapshot/2019-01-06/')); \
+    install.packages('dotenv')" \
+  && R -e "options(repos = \
+    list(CRAN = 'http://mran.revolutionanalytics.com/snapshot/2019-01-06/')); \
     install.packages('data.table')"
 
 ADD requirements.txt /app/requirements.txt

@@ -129,7 +129,3 @@ ReplyGenes<-ReplyGenes[str_length(ReplyGenes$GeneSymbol)>3,]
 ReplyGenes<-ReplyGenes[! ReplyGenes$org_tweet_id %in% ReplyGenes$tweet_id, ] # delete retweets if the org tweet is present
 
 write.csv(ReplyGenes,file=paste0(PTH,'output/ReplyGenes.csv'),row.names = FALSE)
-
-
-
-

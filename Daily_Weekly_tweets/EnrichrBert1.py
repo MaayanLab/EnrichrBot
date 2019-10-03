@@ -29,7 +29,7 @@ import sys
 
 # load var from .env file
 load_dotenv()
-PTH = os.environ.get('PTH')
+PTH = os.environ.get('PTH')  # PTH="/home/maayanlab/enrichrbot/"
 
 # *** once a day tweets are collected by CollectTweets.py ***
 
@@ -138,6 +138,9 @@ print("Finished! Go to folder:",os.path.join(PTH,"tweets",FOLDER,"full_data.csv.
 path1=os.path.join(PTH,"tweets",FOLDER,"full_data.csv.gz")
 df=pd.read_csv(path1,compression='gzip',dtype=str)
 df['index_col'] = df.index
+
+# delete rows with empty text (due to json problems)
+df = df[pd.notnull(df['text'])]
 
 # Creating test dataframe according to BERT format
 df_bert_test = pd.DataFrame({'index_col':df['index_col'],'text':df['text'].replace(r'\n',' ',regex=True)})

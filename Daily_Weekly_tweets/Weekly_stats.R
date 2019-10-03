@@ -25,7 +25,7 @@ if(DAY == 5){ # if today is FRI execute a weekly tweet
   WEEK <- commandArgs(trailingOnly=TRUE)[2]
   
   load_dot_env(file = "/app/.env")
-  PTH = Sys.getenv("PTH")
+  PTH = Sys.getenv("PTH") # PTH = '/home/maayanlab/enrichrbot/'
   #PTH = '/app/'
   
   filepath = paste0(PTH,'bert/data/bert_full_week_',WEEK,'.csv')  # path to BERT classification results
@@ -218,12 +218,17 @@ if(DAY == 5){ # if today is FRI execute a weekly tweet
     dataM<-head(data,0.05*length(data$gene)) # get the top 5% genes that people talked about.
     dataM$gene<-toupper(dataM$gene)
     
+    frm = format(min(gene_Tweets$tweet_created_at), "%m-%d-%Y")
+    to = format(max(gene_Tweets$tweet_created_at), "%m-%d-%Y")      
+    
     pth<-paste0(PTH,'output/barplot.jpg')
     jpeg(pth, width = 5, height = 5, units = 'in', res = 300)
-    p<-ggplot(dataM,aes(x= reorder(gene,freq),log(freq))) +
+    p<-ggplot(dataM,aes(x= reorder(gene,freq),(freq))) +
       geom_bar(stat ="identity", fill="blue", colour="white") +
-      ggtitle("Tweets distribution of the top 5% tweeted genes") +
-      ylab("log(tweets)") +
+      theme(plot.title = element_text(size=12, family = "Times New Roman", face = 'bold')) +
+      ggtitle(paste0("Top ",length(dataM$gene), " tweeted genes from ",frm," to ", to,sep="")
+      ) +
+      ylab("tweets") +
       xlab("Gene Symbol") +
       coord_flip() 
     print(p)
@@ -287,28 +292,28 @@ if(DAY == 5){ # if today is FRI execute a weekly tweet
       # plot graph
       pth<-paste0(PTH,'output/gene_gene_graph.jpg')
       jpeg(pth, width = 6, height = 6, units= 'in', res = 300)
-      txt1<-"Main Connected Componnent of a Gene-Gene Network."
-      txt2<-"Connected genes (nodes) are co-mentioned by a user."
+      txt1<-'Largest connected component of a gene-gene co-mentioned network' 
+      txt2<-paste('for tweeted genes from ', frm, 'to ', to)
       txt3<-expression(paste("Node's degree is smaller than the median degree pluse ", sigma) )
       colfunc <- colorRampPalette(c('red','orange','gray', 'white'))
-      layout(matrix(1:2,ncol=2), width = c(3,1),height = c(1,1))
+      #layout(matrix(1:2,ncol=2), width = c(3,1),height = c(1,1))
       plot(g, col = colfunc(20))
-      title(txt1,cex.main=0.6,family="Times New Roman")
-      title(txt2,cex.main=0.5, line = 1,family="Times New Roman")
-      title(txt3,cex.main=0.5, line = 0,family="Times New Roman")
+      title(txt1,cex.main=1,family="Times New Roman", line = 2)
+      title(txt2,cex.main=1, line = 1,family="Times New Roman")
+      title(txt3,cex.main=0.8, line = 0,family="Times New Roman")
       # plot legend
-      legend_image <- as.raster(matrix(colfunc(4), ncol=1))
-      plot(c(0,1),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = '\n\n #co-mentions',cex.main=0.5,family="Times New Roman")
-      text(x=1.2, y = seq(0,1,l=3), labels = seq(min(E(g)$weight),max(E(g)$weight),l=3),cex=0.5)
-      rasterImage(legend_image, 0, 0, 0.2,1)
+      #legend_image <- as.raster(matrix(colfunc(4), ncol=1))
+      #plot(c(0,1),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = '\n\n #co-mentions',cex.main=0.5,family="Times New Roman")
+      #text(x=1.2, y = seq(0,1,l=3), labels = seq(min(E(g)$weight),max(E(g)$weight),l=3),cex=0.5)
+      #rasterImage(legend_image, 0, 0, 0.2,1)
       dev.off()
       
       # write genes (i.e. nodes) to file
       # write.csv(V(genes_projected)$name,file=paste0(PTH,'output/geneListAll.csv'),row.names = FALSE)
       
       # tweet!
-      
-      system(paste0("python3 ",PTH,"Tweet.py",sep=""))
+      system(paste("python3 ",PTH,"screenshots.py ",sep="")) # create screenshots
+      system(paste("python3 ",PTH,"Tweet.py ", WEEK," ", frm," ", to ,sep="")) # tweet
       
     }else{
       print("gene-gene graph has less than 5 nodes")
