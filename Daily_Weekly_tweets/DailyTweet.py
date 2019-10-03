@@ -92,14 +92,21 @@ def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
       if data['in_reply_to_status_id'] in df_dat['tweet_id'].tolist():
         df_dat = df_dat[df_dat.tweet_id != data['in_reply_to_status_id']]
   return(df_dat)
+  
+def priority(data_frame):
+  rare_genes = pd.read_csv(os.path.join(PTH,'data/autorif_gene_cout.csv'),dtype=str) # lower quintile or zero publications in AutoRIF.
+  data_frame = pd.merge(data_frame, rare_genes, on='GeneSymbol', how='left')
+  data_frame = data_frame.sort_values(by=['count'],ascending=False) # sort asc
+  return(data_frame)
     
 # post a reply to each tweet that was found
 def main_tweet():
-  df = pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"))
+  df = pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"),dtype=str)
   df = did_we_replied(df) # prevent reply to tweets that Enrichrbot replied before
+  df = priority(df) # rank tweets such that rare genes will be tweeted first
   reply_counter = 0
   for tweet_id in df['tweet_id']:
-    if reply_counter >2:  # tweet up to 2 replies 
+    if reply_counter > 2:  # tweet up to 2 replies 
       break
     else:
       if not (df[df['tweet_id']==tweet_id]['user_id'] ==1146058388452888577).tolist()[0]: # tweet is NOT by Enrichrbot
