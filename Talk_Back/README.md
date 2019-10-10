@@ -25,7 +25,7 @@ EnricherBot searches the tweet's text for one of the gene names in the /data/QA.
 Go to the local GPU server
 </li>
 <li>
-Type in terminal: python3 /home/maayanlab/enrichrbot/talkback/QA.py
+Type in terminal: python3 /home/maayanlab/enrichrbot/QA/QA.py
 <ul>
   <li>
   The script starts a Twitter stream API that constantly runs in the background.
@@ -47,6 +47,6 @@ Type in terminal: python3 /home/maayanlab/enrichrbot/talkback/QA.py
 </ul>
 </li>
 <li>
-Gene data is in: cd /home/maayanlab/enrichrbot/talkback/data/QA.csv
+Gene data is in: cd /home/maayanlab/enrichrbot/QA/data/QA.csv
 </li>
 </ol>
