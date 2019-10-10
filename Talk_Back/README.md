@@ -37,7 +37,10 @@ Type in terminal: python3 /home/maayanlab/enrichrbot/QA/QA.py
     To edit the crontab, type in the terminal: crontab -e
     <ul>
       <li>
-        Edit the code and save it with CNTR + x
+        Edit the code and save it with CTR + x
+      </li>
+      <li>
+      When asked type y to save changes
       </li>
     </ul>
   </li>
