@@ -47,6 +47,6 @@ Type in terminal: python3 /home/maayanlab/enrichrbot/talkback/QA.py
 </ul>
 </li>
 <li>
-Gene data is in: cd /home/maayanlab/enrichrbot/QA/data/QA.csv
+Gene data is in: cd /home/maayanlab/enrichrbot/talkback/data/QA.csv
 </li>
 </ol>
