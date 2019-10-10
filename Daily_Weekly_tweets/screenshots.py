@@ -14,15 +14,16 @@ import random
 import json
 load_dotenv(verbose=True)
 
+WEEK = str(sys.argv[1])
 GENESHOT_URL = 'https://amp.pharm.mssm.edu/geneshot/geneset.html?genelist='
 ENRICHR_URL =  'https://amp.pharm.mssm.edu/Enrichr'
 CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
-PTH = os.environ.get('PTH') # PTH = '/home/maayanlab/enrichrbot/'
+PTH = os.environ.get('PTH') # PTH = '/home/maayanlab/enrichrbot/' # PTH = '/users/alon/desktop/enrichrbot/'
 
 # Submit geneset to enrichr
 def submit_to_enrichr(geneset=[], description=''):
   print('Submitting to enrichr {}...'.format(geneset))
-  genes_str = '\n'.join(geneset)
+  genes_str = '\n'.join(str(v) for v in geneset)
   payload = {
       'list': (None, genes_str),
       'description': (None, description)
@@ -32,6 +33,9 @@ def submit_to_enrichr(geneset=[], description=''):
       raise Exception('Error analyzing gene list')
   data = json.loads(response.text)
   enrichr_link = ENRICHR_URL + '/enrich?dataset={}'.format(data['shortId'])
+  f = open(os.path.join(PTH,"screenshots/enrichr_link.txt"), "w")
+  f.write(enrichr_link)
+  f.close()
   return enrichr_link
  
 # Submit geneset to geneshot  
@@ -41,8 +45,11 @@ def submit_to_geneshot(geneset=[]):
     #rif:         generif/autorif (better use autorif)
     #similarity:  autorif/generif/enrichr/tagger/coexpression
     #https://amp.pharm.mssm.edu/geneshot/geneset.html?genelist=SOX2,TP53,RB1&rif=generif&similarity=tagger
-  genes_str = ','.join(geneset)
+  genes_str = ','.join(str(v) for v in geneset)
   geneshot_link = GENESHOT_URL + genes_str + '&rif=autorif&similarity=tagger'
+  f = open(os.path.join(PTH,"screenshots/geneshot_link.txt"), "w")
+  f.write(geneshot_link)
+  f.close()
   return geneshot_link
 
 
@@ -78,8 +85,9 @@ def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
 # create and save screenshots of geneshot and enricht
 def main_report_tweet():
   # load genelist from the network
-  genes = pd.read_csv(os.path.join(PTH,'output/barplot_data.csv'))
-  genes = genes['gene'].tolist()
+  genes = pd.read_csv(os.path.join(PTH,'bert/data/bert_full_week_'+WEEK+'.csv'), 
+                                          dtype=str, error_bad_lines=False, encoding='utf-8')
+  genes = set(genes['GeneSymbol'])
   # submit geneset to enrichr
   enrichr_link = submit_to_enrichr(genes, 'Enrichr Bot weekly Submission')
   # create geneshot link
