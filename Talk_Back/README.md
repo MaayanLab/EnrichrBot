@@ -1,4 +1,4 @@
-# EnrichrBot Talk Back:
+# EnrichrBot Talk Back
 EnricherBot listens to streaming tweets and replies to the ones that mention '@BotEnrichr'.
 </br>
 EnricherBot searches the tweet's text for one of the gene names in the /data/QA.csv file.
