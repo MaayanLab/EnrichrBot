@@ -19,7 +19,7 @@ EnricherBot searches the tweet's text for one of the gene names in the /data/QA.
  </ol>
 
 
-## How to run EnrichrBot TalkBack
+## To run EnrichrBot TalkBack:
 <ol>
 <li>
 Go to the local GPU server
