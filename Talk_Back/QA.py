@@ -18,7 +18,7 @@ import time
 
 load_dotenv()
 PTH = os.environ.get('PTH_T') 
-# PTH="/home/maayanlab/enrichrbot/QA/" # PTH="/users/alon/desktop/QA/"
+# PTH="/home/maayanlab/enrichrbot/Talk_Back/" # PTH="/users/alon/desktop/Talk_Back/"
 
 CHROMEDRIVER_PATH="/usr/local/bin/chromedriver"
 

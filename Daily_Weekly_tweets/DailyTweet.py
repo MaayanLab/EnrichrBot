@@ -66,9 +66,9 @@ def tweet(gene, tweet_id):
     link_to_screenshot( link=geneshot_link, output=os.path.join(PTH, "screenshots", "gsht.png"), browser=browser, zoom='0.75'),
   ]
   browser.quit()
-  message = "Explore prior knowledge & functional predictions for {} with @MaayanLab #Bioinformatics.\n{}\n{}\n{}\n{}"
+  message = "Explore prior knowledge & functional predictions for {} with @MaayanLab #Bioinformatics tools.\n{}\n{}\n{}\n{}"
   message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@DruggableGenome @BD2KLINCSDCIC")
-  message = message + '\nTo get info on a gene reply: @BotEnrichr gene name.\n{}'.format('For example: @BotEnrichr INS')
+  message = message + '\nInterested in another gene? Simply type: @BotEnrichr <gene symbol>'
   # Send the tweet with photos
   ps = [api.media_upload(screenshot) for screenshot in screenshots]
   media_ids = [p.media_id_string for p in ps]
