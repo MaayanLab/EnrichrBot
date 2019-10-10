@@ -15,7 +15,7 @@
   
   1. Login to the local GPU server.
   2. Type in the terminal: cd /home/maayanlab/enrichrbot/docker-compose run enrichrbotbert2
-  3. To edit the cronjob type in the terminal: crontab -l
+  3. To edit the cronjob type in the terminal: crontab -e
    * Edit 
    * Save changes with CTR+x
    * When asked type y to save changes
