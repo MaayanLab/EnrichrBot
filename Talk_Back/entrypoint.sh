@@ -1,8 +1,6 @@
 #!/bin/bash
- 
-if [ -z "${PTH}" ]; then
-   export PTH="$(dirname $0)/"
+if ! pgrep -f QA.py
+then
+  echo "restarted the talkback bot">>/home/maayanlab/enrichrbot/QA/test1.log
+  python3 /home/maayanlab/enrichrbot/QA/QA.py
 fi
-
-echo "Starting srteam listening"
-python3 ./app/QA.py

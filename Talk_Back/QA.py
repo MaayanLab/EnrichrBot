@@ -18,7 +18,7 @@ import time
 
 load_dotenv()
 PTH = os.environ.get('PTH_T') 
-# PTH="/home/maayanlab/enrichrbot/Talk_Back/" # PTH="/users/alon/desktop/Talk_Back/"
+# PTH="/home/maayanlab/enrichrbot/QA/" # PTH="/users/alon/desktop/QA/"
 
 CHROMEDRIVER_PATH="/usr/local/bin/chromedriver"
 
@@ -137,12 +137,12 @@ class MyStreamListener(tweepy.StreamListener):
           sim = [x.upper() for x in sim]
           sim = list(filter(None, sim))
           if len(sim)==0:
-            message = "Please reply: @BotEnrichr gene_name. \n For example: @BotEnrichr INS"
+            message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
           else:
-            message = "I'm confused. Did you mean {}? Please reply: @BotEnrichr gene_name. \n For example: @BotEnrichr {}".format(" or ".join(sim), max(sim, key=len))
+            message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(" or ".join(sim), max(sim, key=len))
         else:
-          message = 'please reply: @BotEnrichr gene_name. \n For example: @BotEnrichr INS'
-      Tweet(message,screenshots,tweet_id)   
+          message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
+      Tweet(message,screenshots,tweet_id)
     return True
   #
   def on_error(self, status_code):
