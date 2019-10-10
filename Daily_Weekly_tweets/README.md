@@ -9,7 +9,7 @@
   * Uses Random Forest: classify tweets as gene-diseae/not, generate plots, tweet
   * Weekly, Tweet a report about “trending” genes [Tweet.py]
   
-  # To run EnrichrBotBert
+  ## To run EnrichrBotBert:
   
   Daily at 00:00 there is a cronjob that starts the bot.
   
