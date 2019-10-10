@@ -72,11 +72,11 @@ def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
 #This goes to a link and takes a screenshot
 def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
   print('Capturing screenshot...')
-  time.sleep(2)
+  time.sleep(3)
   browser.get(link)
-  time.sleep(5)
+  time.sleep(6)
   browser.execute_script("document.body.style.zoom='{}'".format(zoom))
-  time.sleep(5)
+  time.sleep(6)
   os.makedirs(os.path.dirname(output), exist_ok=True)
   browser.save_screenshot(output)
   return output
@@ -93,10 +93,10 @@ def main_report_tweet():
   # create geneshot link
   geneshot_link = submit_to_geneshot(genes)
    # init browser
-  browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1600,1200')
+  browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1200,1250')
   # obtain a screenshot
   screenshots = [
-    link_to_screenshot( link=enrichr_link, output=os.path.join(PTH, "screenshots", "enrichr_week.png"), browser=browser, zoom='0.75'),
+    link_to_screenshot( link=enrichr_link, output=os.path.join(PTH, "screenshots", "enrichr_week.png"), browser=browser, zoom='1'),
     link_to_screenshot( link=geneshot_link, output=os.path.join(PTH, "screenshots", "geneshot_week.png"), browser=browser, zoom='0.75'),
   ]
   browser.quit()
