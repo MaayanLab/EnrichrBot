@@ -34,9 +34,11 @@ CONSUMER_SECRET_E=os.environ.get('CONSUMER_SECRET_E')
 ACCESS_TOKEN_E=os.environ.get('ACCESS_TOKEN_E')
 ACCESS_TOKEN_SECRET_E=os.environ.get('ACCESS_TOKEN_SECRET_E') 
 
-list_of_genes = pd.read_csv(os.path.join(PTH,'data/QA.csv'))
-list_of_genes = list_of_genes['gene'].tolist()
+df = pd.read_csv(os.path.join(PTH,'data/QA.csv'))
+list_of_genes = df['gene'].tolist()
 list_of_genes = [x.lower() for x in list_of_genes]
+
+synonyms = df['gene_synonym']
 
 def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   print('Initializing selenium...')
@@ -94,12 +96,22 @@ def Tweet(message, screenshots, tweet_id):
   else:
     print("enrichrbot credentials validation failed")
 #
+
+def search_in_geneSynony(gene):
+  ans = df[df['gene_synonym'].str.contains("C6orf106", na=False)]['gene'].tolist()
+  return(ans)
+
 class MyStreamListener(tweepy.StreamListener):
   def on_data(seld, data):
     print(data)
     data = json.loads(data)
     tweet_id = data['id_str']
     text = (data['text']).lower()
+    # ignore very long texts that mention botenrichr
+    if len(text) > 20:
+      message = "If you would like me to post information about a specific gene, simply type:\n @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
+      Tweet(message,[],tweet_id)
+      return True
     stop_words = set(stopwords.words('english'))
     stop_words.add('botenrichr')
     stop_words.add('@')
@@ -109,15 +121,16 @@ class MyStreamListener(tweepy.StreamListener):
     user_id = data['user']['id_str']
     sim = []
     screenshots = []
+    synon = [] # synonyms in gene_synonyms
     # do not reply to Enrichrbot
     if user_id == '1146058388452888577':
       print("skiping this tweet by Enrichrbot")
       return True
     else:
-      # find the gene name in text
+      # find the gene name (symbol) in text
       for token in tokens:
         try:
-          index_value = list_of_genes.index(token)
+          index_value = list_of_genes.index(token) # find the gene symbol in text
           gene = token.upper()
           db = random.choice(['autorif','generif'])
           geneshot_link = "https://amp.pharm.mssm.edu/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
@@ -126,9 +139,10 @@ class MyStreamListener(tweepy.StreamListener):
           pharos_link = 'https://pharos.nih.gov/targets/' + gene
           screenshots = CreateTweet(geneshot_link,harmonizome_link,archs4_link,pharos_link)
           message ="Explore prior knowledge & functional predictions for {} using:\n{}\n{}\n{}\n{}\n{}"
-          message = message.format(gene.upper(),geneshot_link,harmonizome_link,archs4_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
+          message = message.format(gene.upper(),archs4_link,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
           break
         except ValueError:
+          synon.append(search_in_geneSynony(token))
           index_value = -1
           sim.append( ",".join(difflib.get_close_matches(token, list_of_genes,n=1) ) )
       if (index_value==-1):
@@ -142,6 +156,8 @@ class MyStreamListener(tweepy.StreamListener):
             message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(" or ".join(sim), max(sim, key=len))
         else:
           message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
+      if (len(synon) >0):
+        message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(synon[0],synon[0])
       Tweet(message,screenshots,tweet_id)
     return True
   #
@@ -150,7 +166,6 @@ class MyStreamListener(tweepy.StreamListener):
       print(status_code)
       # returning False in on_data disconnects the stream
     return False
-
 
 if __name__ == '__main__':
   try:
@@ -164,3 +179,4 @@ if __name__ == '__main__':
   except Exception as e:
     print(e)
 # myStream.running = False # stop stream
+

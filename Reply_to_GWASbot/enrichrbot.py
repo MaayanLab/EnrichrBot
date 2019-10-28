@@ -1,136 +1,127 @@
+# new GWASBOT
 from dotenv import load_dotenv
-from twython import Twython, TwythonError
-import json
-import os
-import os.path
-import pandas as pd
-import sys
-import time
 import tweepy
+import pandas as pd
+from datetime import datetime, date
+import datetime
+from time import gmtime, strftime
+import time
+import os, os.path
+import json
+import gzip
+import sys
+import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
-#############################################################################################
-# configure environment with .env
-#############################################################################################
+# load var from .env file
 load_dotenv()
+PTH = os.environ.get('PTH') # PTH ='/home/maayanlab/enrichrbot/reply_to_GWASbot/'
+CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
 
-CONSUMER_KEY = os.environ['CONSUMER_KEY']
-CONSUMER_SECRET = os.environ['CONSUMER_SECRET']
-ACCESS_TOKEN = os.environ['ACCESS_TOKEN']
-ACCESS_TOKEN_SECRET = os.environ['ACCESS_TOKEN_SECRET']
-TWEET_STORAGE_PATH = os.environ['TWEET_STORAGE_PATH']
-LOOKUP_RESULTS = os.environ['LOOKUP_RESULTS']
-ENRICHR_URL = os.environ.get('ENRICHR_URL', 'https://amp.pharm.mssm.edu/Enrichr')
+# load GMT file
+df = pd.read_csv(os.path.join(PTH,'data/GWAS.gmt'),sep='\t',names=range(287))
 
-#############################################################################################
-# collect tweets
-#############################################################################################
-#  need to schedule the launch of the 'main' function on a server at specified time intervals.
+CONSUMER_KEY = os.environ.get('CONSUMER_KEY')
+CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
+ACCESS_TOKEN_SECRET= os.environ.get('ACCESS_TOKEN_SECRET')
+ACCESS_TOKEN = os.environ.get('ACCESS_TOKEN')
 
-def collect_tweets(user_name,path):
-  print('Checking for new tweets...')
-  #
-  # authentication
-  twitter = Twython(CONSUMER_KEY, CONSUMER_SECRET, oauth_version=2)
-  access_token = twitter.obtain_access_token()
-  twitter = Twython(CONSUMER_KEY, access_token=access_token)
-  #
-  # Ensure path exists
-  if not os.path.exists(path):
-    os.mkdir(path)
-  #
-  # discover the id of the latest collected tweet 
-  onlyfiles = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-  onlyfiles = sorted(onlyfiles, key=lambda x:float(x.split('.json')[0][0:]), reverse=True)
-  #
-  # collect tweets from the Timeline of 
-  if len(onlyfiles)==0:
-    try: # get the latest tweet
-      user_timeline = twitter.get_user_timeline(screen_name= user_name, count=1, exclude_replies=True, include_rts=False)
-    except TwythonError as e:
-      print(e)
-  else:
-    with open(path + onlyfiles[0], 'r') as f: # reat json of the latest tweet
-      datastore = json.load(f)
-    #
-    tweet_id = datastore['id_str'] # the latest json tweet
-    try:
-      user_timeline = twitter.get_user_timeline(screen_name= user_name, count=200, exclude_replies=True, include_rts=False, since_id = str(tweet_id))
-    except TwythonError as e:
-      print(e)
-  #  
-  # save data to json files (each tweet has a file)
-  for i in range(0,len(user_timeline)):
-    ts =str(time.mktime(time.strptime(user_timeline[i]['created_at'],"%a %b %d %H:%M:%S +0000 %Y"))) # convert to epoch time
-    with open(path + ts +'.json', 'w', encoding='utf8') as file: # file name is post creation time (epoch time)
-      json.dump(user_timeline[i],file, indent=2)
+# Twitter
+auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+api = tweepy.API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify=True)
 
-#############################################################################################
-# Automaticaly reply to a tweet of GWASbot
-#############################################################################################
-
-# Call the function with: (a) Status text + a link to the photo/ data from Enrichr, and (b) ID of the original tweet.
-
-def reply_to_GWA(reply_to_user, text, media, tweet_id):
-  #
-  # authentication
-  message = '@' + reply_to_user + " " + text
-  print('Tweeting reply to {}: {} with media {}...'.format(tweet_id, message, media))
-  auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-  auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-  api = tweepy.API(auth)
-  #
-  media_uploads = [api.media_upload(medium) for medium in media]
-  media_ids = [upload.media_id_string for upload in media_uploads]
-  api.update_status(
-    message,
-    str(tweet_id),
-    media_ids=media_ids,
-  ) # post a reply
-
-#############################################################################################
-# Main
-#############################################################################################
-
-def main(dry_run=False):
-  # Collect tweets from GWASbot's Timeline
-  collect_tweets('SbotGwa', TWEET_STORAGE_PATH)
-  # Get the latest tweet
-  print('Getting latest tweet metadata...')
-  latest_file = sorted(os.listdir(TWEET_STORAGE_PATH))[-1]
-  latest_json = json.load(open(os.path.join(TWEET_STORAGE_PATH, latest_file), 'r'))
-  # Resolve the identifier from the description (first line, s/ /_/g)
-  identifier = latest_json['text'].splitlines()[0].replace(' ','_').lower().strip()
-  print('Searching for identifier: {}...'.format(identifier))
-  # Look up the identifier in the results
-  df = pd.read_csv(LOOKUP_RESULTS, sep='\t')
-  matches = df[df['identifier'].map(lambda s, q=identifier: q in s.lower().strip())]
-  print(matches.shape[0])
-  if matches.shape[0] == 0:
-    raise Exception("{} not found".format(identifier))
-  if matches.shape[0] > 1:
-    raise Exception("{} matched multiple results".format(identifier))
-  print('Preparing reply...')
-  # Post link as reply
-  enrichr_link = matches['enrichr'].iloc[0]
-  desc = '{}. Enrichr link: {} @MaayanLab #Enrichr #Bioinformatics #BD2K #LINCS @BD2KLINCSDCIC @DruggableGenome #BigData'.format(
-    identifier.replace('_', ' ').capitalize(), enrichr_link,
+def reply_to_gwasbot(genes,tweet_id,text,screenshots,enrichr_link):
+  msg = '{}. Enrichr link:\n{} @MaayanLab #Enrichr #Bioinformatics #BD2K #LINCS @BD2KLINCSDCIC @DruggableGenome #BigData'.format(
+    text, enrichr_link,
   )
-  # Get the screenshot file relative to the results file
-  screenshot = [os.path.join(
-    os.path.dirname(LOOKUP_RESULTS),
-    matches['screenshot'].iloc[0]
-  )]
-  # Get the tweet id for which to reply to
-  tweet_id = latest_json['id_str']
-  if dry_run:
-    print('reply_to_GWA("SbotGwa", {}, {}, {}, '.format(desc, screenshot, tweet_id))
-  else:
-    reply_to_GWA(
-      'SbotGwa',
-      desc,
-      screenshot,
-      tweet_id,
-    )
+  ps = [api.media_upload(screenshot) for screenshot in screenshots]
+  media_ids_str = [p.media_id_string for p in ps]
+  api.update_status(media_ids=media_ids_str, status = msg, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
+
+# Submit geneset to enrichr
+def submit_to_enrichr(geneset=[], description=''):
+  print('Submitting to enrichr {}...'.format(geneset))
+  genes_str = '\n'.join(str(v) for v in geneset)
+  payload = {
+      'list': (None, genes_str),
+      'description': (None, description)
+  }
+  ENRICHR_URL =  'https://amp.pharm.mssm.edu/Enrichr'
+  response = requests.post(ENRICHR_URL + '/addList', files=payload)
+  if not response.ok:
+      raise Exception('Error analyzing gene list')
+  data = json.loads(response.text)
+  enrichr_link = ENRICHR_URL + '/enrich?dataset={}'.format(data['shortId'])
+  return enrichr_link
+
+def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
+  print('Initializing selenium...')
+  options = Options()
+  options.add_argument('--headless')
+  options.add_argument('--no-sandbox')
+  options.add_argument('--disable-extensions')
+  options.add_argument('--dns-prefetch-disable')
+  options.add_argument('--disable-gpu')
+  options.add_argument('--window-size={}'.format(windowSize))
+  driver = webdriver.Chrome(
+    executable_path=CHROMEDRIVER_PATH,
+    options=options,
+  )
+  return driver
+  
+#This goes to a link and takes a screenshot
+def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
+  print('Capturing screenshot...')
+  time.sleep(3)
+  browser.get(link)
+  time.sleep(6)
+  browser.execute_script("document.body.style.zoom='{}'".format(zoom))
+  time.sleep(6)
+  os.makedirs(os.path.dirname(output), exist_ok=True)
+  browser.save_screenshot(output)
+  return output
+  
+def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
+  last_tweets = api.user_timeline(screen_name = 'botenrichr', count = 100, include_rts = True)
+  do_not_teply=[]
+  for tweet in last_tweets:
+    data = tweet._json
+    if data['in_reply_to_user_id'] != None:
+      if data['in_reply_to_status_id_str'] in df_dat:
+        do_not_teply.append(tweet.in_reply_to_status_id_str)
+  return(do_not_teply)
+
+# collect the 5 most recent tweets
+def GWAS():
+  tweets = api.user_timeline(screen_name='SbotGwa',tweet_mode='extended',count=5)
+  # check if enrichrbot replied to this tweet before
+  tweetids=[]
+  for tweet in tweets:
+    tweetids.append(tweet.id_str)
+  do_not_teply = did_we_replied(tweetids)
+  for tweet in tweets:
+    text = tweet.full_text.splitlines()[0]
+    tweet_id = tweet.id_str
+    if tweet_id in do_not_teply:
+      continue
+    # Look up the identifier in the results
+    genes = df[df[0]==text]
+    if len(genes)==0:
+      continue
+    genes = genes.iloc[0].tolist()
+    genes = genes[1:]
+    genes = [x for x in genes if str(x) != 'nan']
+    # set enrichr link
+    enrichr_link = submit_to_enrichr(genes, text)
+    # get enrichr screenshot
+    browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1150,1480')
+    screenshots = [
+      link_to_screenshot( link=enrichr_link, output=os.path.join(PTH, "screenshots", "gwas.png"), browser=browser, zoom='1.3')
+      ]
+    browser.quit()
+    reply_to_gwasbot(genes,tweet_id,text,screenshots,enrichr_link)
 
 if __name__ == '__main__':
-  main(dry_run='--dry-run' in sys.argv)
+  GWAS()

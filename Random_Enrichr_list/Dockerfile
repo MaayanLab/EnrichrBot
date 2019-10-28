@@ -37,13 +37,13 @@ ENV CHROME_PATH=/opt/google/chrome/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 ADD .env.example /app/.env.example
 
-VOLUME [ "/data" ]
-
 ADD entrypoint.sh /app/entrypoint.in.sh
 RUN set -x \
   && bash -c 'cat <(echo "#!/bin/bash") <(cat /app/entrypoint.in.sh) > /app/entrypoint.sh' \
   && chmod +x /app/entrypoint.sh \
   && rm /app/entrypoint.in.sh
+
+ADD . /app/
 
 ADD enrichrbot.py /app/enrichrbot.in.py
 RUN set -x \
