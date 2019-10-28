@@ -1,3 +1,6 @@
+# How to use
+The output of snps2genes.py goes to Table2GMT.r
+
 # Assigning SNPs from the UK Biobank GWAS to genes for Gene Set Enrichment Analysis
 
 - Author: Allison Seiden
