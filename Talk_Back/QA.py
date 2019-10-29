@@ -84,6 +84,10 @@ def Tweet(message, screenshots, tweet_id):
   auth_EnrichrBot = tweepy.OAuthHandler(CONSUMER_KEY_E, CONSUMER_SECRET_E)
   auth_EnrichrBot.set_access_token(ACCESS_TOKEN_E, ACCESS_TOKEN_SECRET_E)
   api_EnrichrBot =tweepy.API(auth_EnrichrBot, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+  # prevent BotEnrichr to repy to itself
+  tweet = api_EnrichrBot.get_status(id=tweet_id)
+  if tweet._json['user']['screen_name']=='BotEnrichr':
+    return
   if api_EnrichrBot.verify_credentials():
     if len(screenshots)==0:
       print(message)
@@ -96,7 +100,6 @@ def Tweet(message, screenshots, tweet_id):
   else:
     print("enrichrbot credentials validation failed")
 #
-
 def search_in_geneSynony(gene):
   ans = df[df['gene_synonym'].str.contains("C6orf106", na=False)]['gene'].tolist()
   return(ans)
