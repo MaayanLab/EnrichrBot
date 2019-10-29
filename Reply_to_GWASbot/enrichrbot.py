@@ -19,6 +19,8 @@ load_dotenv()
 PTH = os.environ.get('PTH') # PTH ='/home/maayanlab/enrichrbot/reply_to_GWASbot/'
 CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
 
+print(strftime("%Y-%m-%d %H:%M:%S", gmtime()))
+
 # load GMT file
 df = pd.read_csv(os.path.join(PTH,'data/GWAS.gmt'),sep='\t',names=range(287))
 
@@ -105,11 +107,14 @@ def GWAS():
     text = tweet.full_text.splitlines()[0]
     tweet_id = tweet.id_str
     if tweet_id in do_not_teply:
+      print("skiping tweet ", tweet_id)
       continue
     # Look up the identifier in the results
     genes = df[df[0]==text]
     if len(genes)==0:
+      print("no genes for ", tweet_id)
       continue
+    print("preparing reply to ",tweet_id)
     genes = genes.iloc[0].tolist()
     genes = genes[1:]
     genes = [x for x in genes if str(x) != 'nan']
