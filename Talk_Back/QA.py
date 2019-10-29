@@ -112,7 +112,7 @@ class MyStreamListener(tweepy.StreamListener):
     text = (data['text']).lower()
     # ignore very long texts that mention botenrichr
     if len(text) > 20:
-      message = "If you would like me to post information about a specific gene, simply type:\n @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
+      message = "If you would like me to post information about a specific gene, simply type:\n@BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
       Tweet(message,[],tweet_id)
       return True
     stop_words = set(stopwords.words('english'))
@@ -182,4 +182,3 @@ if __name__ == '__main__':
   except Exception as e:
     print(e)
 # myStream.running = False # stop stream
-
