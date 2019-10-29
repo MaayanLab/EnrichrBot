@@ -80,7 +80,6 @@ def tweet(gene, tweet_id):
     except Exception as e:
       print(e)
 
-
 def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
   last_tweets = api.user_timeline(screen_name = 'botenrichr', count = 100, include_rts = True)
   for tweet in last_tweets:
@@ -89,7 +88,6 @@ def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
       if data['in_reply_to_status_id_str'] in df_dat['tweet_id'].tolist():
         df_dat = df_dat[df_dat.tweet_id != data['in_reply_to_status_id_str']]
   return(df_dat)
-  
 
 def priority(data_frame):
   rare_genes = pd.read_csv(os.path.join(PTH,'data/autorif_gene_cout.csv'),dtype=str) # lower quintile or zero publications in AutoRIF.
@@ -98,11 +96,14 @@ def priority(data_frame):
   data_frame['count'] = data_frame['count'].astype(int)
   data_frame = data_frame.sort_values(by=['count'],ascending=True) # sort asc
   return(data_frame)
-
   
 # post a reply to each tweet that was found
 def main_tweet():
   df = pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"),dtype=str)
+  alert_genes = pd.read_csv(os.path.join(PTH,"output","Alert_genes.csv"),dtype=str)
+  if len(alert_genes)>0:
+    alert_genes.columns = ['Unnamed: 0', 'GeneSymbol', 'Screen_name', 'text_clean', 'tweet_id']
+    df = pd.concat([alert_genes,df]).fillna(0)
   df = did_we_replied(df) # prevent reply to tweets that Enrichrbot replied before
   df = priority(df) # rank tweets such that rare genes will be tweeted first
   reply_counter = 0
@@ -112,7 +113,7 @@ def main_tweet():
     else:
       if not (df[df['tweet_id']==tweet_id]['user_id'] ==1146058388452888577).tolist()[0]: # tweet is NOT by Enrichrbot
         reply_counter = reply_counter +1
-        gene = df[df.tweet_id==tweet_id].iloc[0][2]
+        gene = df[df.tweet_id==tweet_id]['GeneSymbol'].tolist()[0]
         tweet(gene, tweet_id)
         time.sleep(10)
   # delete screenshots from folder     
