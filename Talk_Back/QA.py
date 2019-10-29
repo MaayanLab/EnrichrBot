@@ -38,8 +38,6 @@ df = pd.read_csv(os.path.join(PTH,'data/QA.csv'))
 list_of_genes = df['gene'].tolist()
 list_of_genes = [x.lower() for x in list_of_genes]
 
-synonyms = df['gene_synonym']
-
 def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   print('Initializing selenium...')
   options = Options()
@@ -105,29 +103,32 @@ def search_in_geneSynony(gene):
   return(ans)
 
 class MyStreamListener(tweepy.StreamListener):
-  def on_data(seld, data):
+  def on_data(self, data):
     print(data)
     data = json.loads(data)
     tweet_id = data['id_str']
     text = (data['text']).lower()
-    # ignore very long texts that mention botenrichr
-    if len(text) > 20:
-      message = "If you would like me to post information about a specific gene, simply type:\n@BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
-      Tweet(message,[],tweet_id)
-      return True
     stop_words = set(stopwords.words('english'))
     stop_words.add('botenrichr')
     stop_words.add('@')
+    stop_words.add('please')
+    stop_words.add('give')
+    stop_words.add('information')
     tokenizer = RegexpTokenizer(r'\w+')
     tokens = tokenizer.tokenize(text) # remove punctuation
     tokens = [w for w in tokens if not w in stop_words] # remove english stop words
+    # ignore very long texts that mention BotEnrichr
+    if len(tokens) > 7:
+      message = "If you would like me to post information about a specific gene, simply type:\n@BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
+      Tweet(message,[],tweet_id)
+      return True
     user_id = data['user']['id_str']
     sim = []
     screenshots = []
     synon = [] # synonyms in gene_synonyms
     # do not reply to Enrichrbot
     if user_id == '1146058388452888577':
-      print("skiping this tweet by Enrichrbot")
+      print("skiping self tweet by Enrichrbot")
       return True
     else:
       # find the gene name (symbol) in text
@@ -182,3 +183,9 @@ if __name__ == '__main__':
   except Exception as e:
     print(e)
 # myStream.running = False # stop stream
+
+# see rate limits
+# data = api.rate_limit_status()
+# print(data['resources']['statuses']['/statuses/home_timeline'])
+# print(data['resources']['users']['/users/lookup'])
+
