@@ -101,7 +101,7 @@ if len(Alert)>0:
   msg.attach(MIMEText(tweets_ids,'plain'))
   message = msg.as_string()
   #
-  gmail_user = os.environ.get('USER')
+  gmail_user = os.environ.get('GMAILUSER')
   gmail_password = os.environ.get('PASS')
   #
   try:
@@ -112,3 +112,4 @@ if len(Alert)>0:
     print('Email sent!')
   except:
     print('Email sending failed')
+  
