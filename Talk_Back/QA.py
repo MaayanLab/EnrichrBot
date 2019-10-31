@@ -99,7 +99,8 @@ def Tweet(message, screenshots, tweet_id):
     print("enrichrbot credentials validation failed")
 #
 def search_in_geneSynony(gene):
-  ans = df[df['gene_synonym'].str.contains("C6orf106", na=False)]['gene'].tolist()
+  df['gene_synonym'] = df['gene_synonym'].str.lower()
+  ans = df[df['gene_synonym'].str.contains(gene, na=False)]['gene'].tolist()
   return(ans)
 
 class MyStreamListener(tweepy.StreamListener):
@@ -117,19 +118,19 @@ class MyStreamListener(tweepy.StreamListener):
     tokenizer = RegexpTokenizer(r'\w+')
     tokens = tokenizer.tokenize(text) # remove punctuation
     tokens = [w for w in tokens if not w in stop_words] # remove english stop words
+    # do not reply to Enrichrbot
+    user_id = data['user']['id_str']
+    if user_id == '1146058388452888577':
+      print("skiping self tweet by Enrichrbot")
+      return True
     # ignore very long texts that mention BotEnrichr
     if len(tokens) > 7:
       message = "If you would like me to post information about a specific gene, simply type:\n@BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
       Tweet(message,[],tweet_id)
       return True
-    user_id = data['user']['id_str']
     sim = []
     screenshots = []
     synon = [] # synonyms in gene_synonyms
-    # do not reply to Enrichrbot
-    if user_id == '1146058388452888577':
-      print("skiping self tweet by Enrichrbot")
-      return True
     else:
       # find the gene name (symbol) in text
       for token in tokens:
@@ -149,19 +150,19 @@ class MyStreamListener(tweepy.StreamListener):
           synon.append(search_in_geneSynony(token))
           index_value = -1
           sim.append( ",".join(difflib.get_close_matches(token, list_of_genes,n=1) ) )
+          
       if (index_value==-1):
-        if len(sim)>0:
-          sim = list(set(sim))
-          sim = [x.upper() for x in sim]
-          sim = list(filter(None, sim))
-          if len(sim)==0:
-            message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
-          else:
-            message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(" or ".join(sim), max(sim, key=len))
+        if len(synon) >0:
+          message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(synon[0][0],synon[0][0])
         else:
-          message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
-      if (len(synon) >0):
-        message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(synon[0],synon[0])
+          if len(sim)>0:
+            sim = list(set(sim))
+            sim = [x.upper() for x in sim]
+            sim = list(filter(None, sim))
+            message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(" or ".join(sim), max(sim, key=len))
+          else:
+            message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
+          
       Tweet(message,screenshots,tweet_id)
     return True
   #
