@@ -12,6 +12,7 @@ import requests
 import sys
 import time
 import tweepy
+from bs4 import BeautifulSoup 
 load_dotenv(verbose=True)
 
 # get environment vars from .env
@@ -38,9 +39,23 @@ def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   )
   return driver
 
+
+def is_empty_content(link):
+  resp=requests.get(link) 
+  if resp.status_code==200: 
+    soup = BeautifulSoup(resp.text,'html.parser') 
+    data = soup.find("div",{"id":"missing information"})
+  else: 
+    print("Error ARCHS4 website is down")
+  return(data is not None)
+
+
 #This goes to a link and takes a screenshot
 def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
   print('Capturing screenshot...')
+  if 'archs4' in link:
+    if is_empty_content(link):
+      return None
   time.sleep(2)
   browser.get(link)
   time.sleep(5)
@@ -91,8 +106,15 @@ def main_random_tweet():
   auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
   api = tweepy.API(auth)
   # Construct the tweet
-  message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG resources:\n{}\n{}\n{}\n{}\n{}"
-  message = message.format(df[df.Gene==gene].iloc[0][1],gene,archs4_link,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
+  if screenshots[1] is None:
+    screenshots = [i for i in screenshots if i]
+    message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG resources:\n{}\n{}\n{}\n{}"
+    message = message.format(df[df.Gene==gene].iloc[0][1],gene,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
+    # Send the tweet with photos
+  else:
+    message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG resources:\n{}\n{}\n{}\n{}\n{}"
+    message = message.format(df[df.Gene==gene].iloc[0][1],gene,archs4_link,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
+  
   # Send the tweet with photos
   ps = [api.media_upload(screenshot) for screenshot in screenshots]
   media_ids = [p.media_id_string for p in ps]
