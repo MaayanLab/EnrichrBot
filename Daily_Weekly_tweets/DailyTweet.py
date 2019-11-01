@@ -95,6 +95,7 @@ def priority(data_frame):
   data_frame = data_frame.fillna(0) # a rare gene that is not in GeneRIF will get a zero score and will be prioritize
   data_frame['count'] = data_frame['count'].astype(int)
   data_frame = data_frame.sort_values(by=['count'],ascending=True) # sort asc
+  data_frame = data_frame.reset_index(drop=True)
   return(data_frame)
   
 # post a reply to each tweet that was found
@@ -111,7 +112,7 @@ def main_tweet():
     if reply_counter > 1:  # tweet up to 2 replies 
       break
     else:
-      if not (df[df['tweet_id']==tweet_id]['user_id'] ==1146058388452888577).tolist()[0]: # tweet is NOT by Enrichrbot
+      if not (df[df['tweet_id']==tweet_id]['user_id'] == 1146058388452888577).tolist()[0]: # tweet is NOT by Enrichrbot
         reply_counter = reply_counter +1
         gene = df[df.tweet_id==tweet_id]['GeneSymbol'].tolist()[0]
         tweet(gene, tweet_id)
