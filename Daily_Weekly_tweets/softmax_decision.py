@@ -40,6 +40,7 @@ df_results_csv = df_results_csv.drop('text', 1)
 
 # verift the same column type before mergeing dataframes 
 df_results_csv['index_col'] = df_results_csv['index_col'].astype('int32')
+full_data = full_data[full_data['index_col']!='None']
 full_data['index_col'] = full_data['index_col'].astype('int32')
 
 # join data frames: full_data with df_results_csv based on index column
