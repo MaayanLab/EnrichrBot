@@ -8,4 +8,4 @@ The text for the UKbiobank can be found here:
 http://www.nealelab.is/uk-biobank
 under "GWAS round 2" > Spreadsheet > description lookup tab
 <br>
-If the text id not found in the GMT file, then EnrichrBot serachs it by obtaining the links from the tweet of GWASbot and searchs the links in the file: "UKBB GWAS Imputed v3 - File Manifest Release 20180731 - Manifest 201807.csv"	
+If the text id not found in the GMT file, then EnrichrBot serachs it by obtaining the links from the tweet of GWASbot and searchs the links in the file: "UKBB.csv"	
