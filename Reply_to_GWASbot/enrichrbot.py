@@ -10,6 +10,7 @@ import os, os.path
 import json
 import gzip
 import sys
+import re
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -23,6 +24,7 @@ print(strftime("%Y-%m-%d %H:%M:%S", gmtime()))
 
 # load GMT file
 df = pd.read_csv(os.path.join(PTH,'data/GWAS.gmt'),sep='\t',names=range(287))
+UKBB = pd.read_csv(os.path.join(PTH,'data/UKBB.csv'))
 
 CONSUMER_KEY = os.environ.get('CONSUMER_KEY')
 CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
@@ -95,6 +97,16 @@ def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
         do_not_teply.append(tweet.in_reply_to_status_id_str)
   return(do_not_teply)
 
+
+def find_url(URLS):
+  for url in URLS:
+    column = [col for col in UKBB.columns if (UKBB[col] == url).any()]
+    if len(column) > 0:
+      text = UKBB[UKBB[column[0]] == url]['Phenotype Description'].tolist()[0]
+      return text
+  return None
+  
+  
 # collect the 5 most recent tweets
 def GWAS():
   tweets = api.user_timeline(screen_name='SbotGwa',tweet_mode='extended',count=5)
@@ -104,13 +116,16 @@ def GWAS():
     tweetids.append(tweet.id_str)
   do_not_teply = did_we_replied(tweetids)
   for tweet in tweets:
-    text = tweet.full_text.splitlines()[0]
     tweet_id = tweet.id_str
     if tweet_id in do_not_teply:
       print("skiping tweet ", tweet_id)
       continue
     # Look up the identifier in the results
+    text = tweet.full_text.splitlines()[0].strip()
     genes = df[df[0]==text]
+    if len(genes)==0:
+      text = find_url([url['expanded_url'] for url in tweet.entities['urls']])
+      genes = df[df[0]==text]
     if len(genes)==0:
       print("no genes for ", tweet_id)
       continue
