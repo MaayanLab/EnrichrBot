@@ -15,6 +15,7 @@ from selenium.webdriver.chrome.options import Options
 import requests
 import sys
 import time
+import re
 
 load_dotenv()
 PTH = os.environ.get('PTH_T') 
@@ -98,10 +99,18 @@ def Tweet(message, screenshots, tweet_id):
   else:
     print("enrichrbot credentials validation failed")
 #
+
 def search_in_geneSynony(gene):
   df['gene_synonym'] = df['gene_synonym'].str.lower()
   ans = df[df['gene_synonym'].str.contains(gene, na=False)]['gene'].tolist()
   return(ans)
+
+
+def isListEmpty(inList):
+  if isinstance(inList, list): # Is a list
+      return all( map(isListEmpty, inList) )
+  return False # Not a list
+
 
 class MyStreamListener(tweepy.StreamListener):
   def on_data(self, data):
@@ -109,8 +118,11 @@ class MyStreamListener(tweepy.StreamListener):
     data = json.loads(data)
     tweet_id = data['id_str']
     text = (data['text']).lower()
+    if text.startswith("hey "):
+      text = re.sub("hey ","",text)
     stop_words = set(stopwords.words('english'))
     stop_words.add('botenrichr')
+    stop_words.add('enrichrbot')
     stop_words.add('@')
     stop_words.add('please')
     stop_words.add('give')
@@ -124,46 +136,43 @@ class MyStreamListener(tweepy.StreamListener):
       print("skiping self tweet by Enrichrbot")
       return True
     # ignore very long texts that mention BotEnrichr
-    if len(tokens) > 7:
+    if len(tokens) > 8:
       message = "If you would like me to post information about a specific gene, simply type:\n@BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
       Tweet(message,[],tweet_id)
       return True
     sim = []
     screenshots = []
     synon = [] # synonyms in gene_synonyms
-    else:
-      # find the gene name (symbol) in text
-      for token in tokens:
-        try:
-          index_value = list_of_genes.index(token) # find the gene symbol in text
-          gene = token.upper()
-          db = random.choice(['autorif','generif'])
-          geneshot_link = "https://amp.pharm.mssm.edu/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
-          harmonizome_link = 'http://amp.pharm.mssm.edu/Harmonizome/gene/' + gene
-          archs4_link = 'https://amp.pharm.mssm.edu/archs4/gene/' + gene
-          pharos_link = 'https://pharos.nih.gov/targets/' + gene
-          screenshots = CreateTweet(geneshot_link,harmonizome_link,archs4_link,pharos_link)
-          message ="Explore prior knowledge & functional predictions for {} using:\n{}\n{}\n{}\n{}\n{}"
-          message = message.format(gene.upper(),archs4_link,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
-          break
-        except ValueError:
-          synon.append(search_in_geneSynony(token))
-          index_value = -1
-          sim.append( ",".join(difflib.get_close_matches(token, list_of_genes,n=1) ) )
-          
-      if (index_value==-1):
-        if len(synon) >0:
-          message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(synon[0][0],synon[0][0])
+    # find the gene name (symbol) in text
+    for token in tokens:
+      try:
+        index_value = list_of_genes.index(token) # find the gene symbol in text
+        gene = token.upper()
+        db = random.choice(['autorif','generif'])
+        geneshot_link = "https://amp.pharm.mssm.edu/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
+        harmonizome_link = 'http://amp.pharm.mssm.edu/Harmonizome/gene/' + gene
+        archs4_link = 'https://amp.pharm.mssm.edu/archs4/gene/' + gene
+        pharos_link = 'https://pharos.nih.gov/targets/' + gene
+        screenshots = CreateTweet(geneshot_link,harmonizome_link,archs4_link,pharos_link)
+        message ="Explore prior knowledge & functional predictions for {} using:\n{}\n{}\n{}\n{}\n{}"
+        message = message.format(gene.upper(),archs4_link,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
+        break
+      except ValueError:
+        synon.append(search_in_geneSynony(token))
+        index_value = -1
+        sim.append( ",".join(difflib.get_close_matches(token, list_of_genes,n=1) ) )
+    if (index_value==-1):
+      if not isListEmpty(synon):
+        message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(synon[0][0],synon[0][0])
+      else:
+        if len(sim)>0:
+          sim = list(set(sim))
+          sim = [x.upper() for x in sim]
+          sim = list(filter(None, sim))
+          message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(" or ".join(sim), max(sim, key=len))
         else:
-          if len(sim)>0:
-            sim = list(set(sim))
-            sim = [x.upper() for x in sim]
-            sim = list(filter(None, sim))
-            message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(" or ".join(sim), max(sim, key=len))
-          else:
-            message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
-          
-      Tweet(message,screenshots,tweet_id)
+          message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
+    Tweet(message,screenshots,tweet_id)
     return True
   #
   def on_error(self, status_code):
