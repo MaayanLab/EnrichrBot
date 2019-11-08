@@ -22,7 +22,7 @@ CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
 # Twitter authentication
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-api = tweepy.API(auth)
+api = tweepy.API(auth, wait_on_rate_limit=True)
 
 def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   print('Initializing selenium...')
