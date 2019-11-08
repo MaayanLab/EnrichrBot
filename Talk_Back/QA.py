@@ -39,6 +39,14 @@ df = pd.read_csv(os.path.join(PTH,'data/QA.csv'))
 list_of_genes = df['gene'].tolist()
 list_of_genes = [x.lower() for x in list_of_genes]
 
+stop_words = set(stopwords.words('english'))
+stop_words.add('botenrichr')
+stop_words.add('enrichrbot')
+stop_words.add('@')
+stop_words.add('please')
+stop_words.add('give')
+stop_words.add('information')
+
 def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   print('Initializing selenium...')
   options = Options()
@@ -86,7 +94,7 @@ def Tweet(message, screenshots, tweet_id):
   # prevent BotEnrichr to repy to itself
   tweet = api_EnrichrBot.get_status(id=tweet_id)
   if tweet._json['user']['screen_name']=='BotEnrichr':
-    return
+    return True
   if api_EnrichrBot.verify_credentials():
     if len(screenshots)==0:
       print(message)
@@ -117,24 +125,17 @@ class MyStreamListener(tweepy.StreamListener):
     print(data)
     data = json.loads(data)
     tweet_id = data['id_str']
-    text = (data['text']).lower()
-    if text.startswith("hey "):
-      text = re.sub("hey ","",text)
-    stop_words = set(stopwords.words('english'))
-    stop_words.add('botenrichr')
-    stop_words.add('enrichrbot')
-    stop_words.add('@')
-    stop_words.add('please')
-    stop_words.add('give')
-    stop_words.add('information')
-    tokenizer = RegexpTokenizer(r'\w+')
-    tokens = tokenizer.tokenize(text) # remove punctuation
-    tokens = [w for w in tokens if not w in stop_words] # remove english stop words
     # do not reply to Enrichrbot
     user_id = data['user']['id_str']
     if user_id == '1146058388452888577':
       print("skiping self tweet by Enrichrbot")
       return True
+    text = (data['text']).lower()
+    if text.startswith("hey "):
+      text = re.sub("hey ","",text)
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(text) # remove punctuation
+    tokens = [w for w in tokens if not w in stop_words] # remove english stop words
     # ignore very long texts that mention BotEnrichr
     if len(tokens) > 8:
       message = "If you would like me to post information about a specific gene, simply type:\n@BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
