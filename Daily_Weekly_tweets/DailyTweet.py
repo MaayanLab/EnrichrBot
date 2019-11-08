@@ -97,7 +97,31 @@ def priority(data_frame):
   data_frame = data_frame.sort_values(by=['count'],ascending=True) # sort asc
   data_frame = data_frame.reset_index(drop=True)
   return(data_frame)
-  
+
+
+def like_retweet_follow(tweetid):
+  tweet = api.get_status(tweetid)
+  # retweet
+  if not tweet.retweeted:
+    try:
+      tweet.retweet()
+    except Exception as e:
+      print("Error on retweet")
+  # like
+  if not tweet.favorited:
+    try:
+      tweet.favorite()
+    except Exception as e:
+      print("Error on fav")
+  # offer freindship
+  try:
+    f = api.show_friendship(source_screen_name="botenrichr", target_screen_name = tweet.user.screen_name)
+    if not f[0]._json['following']:
+      follower.follow(tweet.user.id_str)
+      api.create_friendship(tweet.user.id_str)
+  except Exception as e:
+    print("Error on following")
+
 # post a reply to each tweet that was found
 def main_tweet():
   df = pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"),dtype=str)
@@ -115,6 +139,8 @@ def main_tweet():
       if not (df[df['tweet_id']==tweet_id]['user_id'] == 1146058388452888577).tolist()[0]: # tweet is NOT by Enrichrbot
         reply_counter = reply_counter +1
         gene = df[df.tweet_id==tweet_id]['GeneSymbol'].tolist()[0]
+        # like and retweet this tweet
+        like_retweet_follow(tweet_id)
         tweet(gene, tweet_id)
         time.sleep(10)
   # delete screenshots from folder     
