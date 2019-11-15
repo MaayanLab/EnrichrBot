@@ -120,7 +120,7 @@ def like_retweet_follow(tweetid):
       follower.follow(tweet.user.id_str)
       api.create_friendship(tweet.user.id_str)
   except Exception as e:
-    print("Error on following")
+    print("Error on following", e)
 
 # post a reply to each tweet that was found
 def main_tweet():

@@ -53,8 +53,10 @@ full_data['GeneSymbol'] = [re.sub(".json.gz", "", x) for x in l]
 full_data = full_data[full_data['Is_Response']=='gene'] # keep only gene related tweets
 
 #------ write daily tweets to a file ------------------------------------------------------------
-
-full_data.to_csv(os.path.join(PTH ,'bert/data/bert_full_result_'+FOLDER+'.csv'),sep=",",index=None)
+try:
+  full_data.to_csv(os.path.join(PTH ,'bert/data/bert_full_result_'+FOLDER+'.csv'),sep=",",index=None)
+except Exception as e:
+  print('error writing daily file in line 59', e)
 
 #------ write tweets to weekly accumulating file ------------------------------------------------
 
