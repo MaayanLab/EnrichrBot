@@ -117,7 +117,6 @@ def like_retweet_follow(tweetid):
   try:
     f = api.show_friendship(source_screen_name="botenrichr", target_screen_name = tweet.user.screen_name)
     if not f[0]._json['following']:
-      follower.follow(tweet.user.id_str)
       api.create_friendship(tweet.user.id_str)
   except Exception as e:
     print("Error on following", e)
