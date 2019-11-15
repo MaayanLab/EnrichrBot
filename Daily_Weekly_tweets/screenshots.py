@@ -70,17 +70,30 @@ def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
 
 
 #This goes to a link and takes a screenshot
-def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
-  print('Capturing screenshot...')
-  time.sleep(3)
+def get_screenshot_enrichr(link=None, output=None, zoom='100 %', browser=None):
+  print('Capturing screenshot for enrichr...')
+  time.sleep(2)
   browser.get(link)
-  time.sleep(6)
+  time.sleep(3)
   browser.execute_script("document.body.style.zoom='{}'".format(zoom))
-  time.sleep(6)
+  time.sleep(3)
   os.makedirs(os.path.dirname(output), exist_ok=True)
   browser.save_screenshot(output)
   return output
   
+def get_screenshot_geneshot(genes, output=None, zoom='100 %', browser=None):
+  browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1200,1250')
+  browser.get("https://amp.pharm.mssm.edu/geneshot/geneset.html")
+  inputElement = browser.find_element_by_id("usergeneset") # get geneshot textbox
+  inputElement.send_keys(','.join(genes))
+  # click submit button
+  submit_button = browser.find_elements_by_xpath('//*[@id="prediction"]/div[2]/button')[0] # geneshot submit button
+  submit_button.click()
+  browser.execute_script("document.body.style.zoom='{}'".format('100 %'))
+  output=os.path.join(PTH, "screenshots", "geneshot_week.png")
+  os.makedirs(os.path.dirname(output), exist_ok=True)
+  browser.save_screenshot(output)
+  return output
   
 # create and save screenshots of geneshot and enricht
 def main_report_tweet():
@@ -90,14 +103,12 @@ def main_report_tweet():
   genes = set(genes['GeneSymbol'])
   # submit geneset to enrichr
   enrichr_link = submit_to_enrichr(genes, 'Enrichr Bot weekly Submission')
-  # create geneshot link
-  geneshot_link = submit_to_geneshot(genes)
    # init browser
   browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1200,1250')
   # obtain a screenshot
   screenshots = [
-    link_to_screenshot( link=enrichr_link, output=os.path.join(PTH, "screenshots", "enrichr_week.png"), browser=browser, zoom='1'),
-    link_to_screenshot( link=geneshot_link, output=os.path.join(PTH, "screenshots", "geneshot_week.png"), browser=browser, zoom='0.75'),
+    get_screenshot_enrichr( link=enrichr_link, output=os.path.join(PTH, "screenshots", "enrichr_week.png"), browser=browser, zoom='1'),
+    get_screenshot_geneshot(list(genes), output=os.path.join(PTH, "screenshots", "geneshot_week.png"), browser=browser, zoom='0.75'),
   ]
   browser.quit()
   
