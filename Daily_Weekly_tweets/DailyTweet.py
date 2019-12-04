@@ -66,7 +66,7 @@ def tweet(gene, tweet_id):
     link_to_screenshot( link=geneshot_link, output=os.path.join(PTH, "screenshots", "gsht.png"), browser=browser, zoom='0.75'),
   ]
   browser.quit()
-  message = "Explore prior knowledge & functional predictions for {} with @MaayanLab #Bioinformatics tools.\n{}\n{}\n{}\n{}"
+  message = "Explore prior knowledge & functional predictions for {} with @MaayanLab #Bioinformatics tools.\n\n{}\n\n{}\n\n{}\n\n{}"
   message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@DruggableGenome @BD2KLINCSDCIC")
   message = message + '\nInterested in another gene? Simply type: @BotEnrichr <gene symbol>'
   # Send the tweet with photos
@@ -127,7 +127,12 @@ def main_tweet():
   alert_genes = pd.read_csv(os.path.join(PTH,"output","Alert_genes.csv"),dtype=str)
   if len(alert_genes)>0:
     alert_genes.columns = ['Unnamed: 0', 'GeneSymbol', 'Screen_name', 'text_clean', 'tweet_id']
+    indeces = [i for i in range(0, len(alert_genes)) if alert_genes['GeneSymbol'][i] in  alert_genes['text_clean'][i] ]
+    alert_genes = alert_genes.loc[indeces]
     df = pd.concat([alert_genes,df]).fillna(0)
+  if len(df)==0:
+    print("No reply genes")
+    return
   df = did_we_replied(df) # prevent reply to tweets that Enrichrbot replied before
   df = priority(df) # rank tweets such that rare genes will be tweeted first
   reply_counter = 0
