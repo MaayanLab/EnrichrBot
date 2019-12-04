@@ -17,6 +17,7 @@ import sys
 import time
 import re
 
+
 load_dotenv()
 PTH = os.environ.get('PTH_T') 
 # PTH="/home/maayanlab/enrichrbot/QA/" # PTH="/users/alon/desktop/QA/"
@@ -39,13 +40,9 @@ df = pd.read_csv(os.path.join(PTH,'data/QA.csv'))
 list_of_genes = df['gene'].tolist()
 list_of_genes = [x.lower() for x in list_of_genes]
 
-stop_words = set(stopwords.words('english'))
-stop_words.add('botenrichr')
-stop_words.add('enrichrbot')
-stop_words.add('@')
-stop_words.add('please')
-stop_words.add('give')
-stop_words.add('information')
+stop_words = stopwords.words('english')
+stop_words.extend(['botenrichr','enrichrbot','@','please','give','information'])
+stop_words = set(stop_words)
 
 def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   print('Initializing selenium...')
@@ -131,6 +128,8 @@ class MyStreamListener(tweepy.StreamListener):
       print("skiping self tweet by Enrichrbot")
       return True
     text = (data['text']).lower()
+    if 'please' not in text:# only reply to tweets that has please in it 
+      return
     if text.startswith("hey "):
       text = re.sub("hey ","",text)
     tokenizer = RegexpTokenizer(r'\w+')
@@ -138,7 +137,7 @@ class MyStreamListener(tweepy.StreamListener):
     tokens = [w for w in tokens if not w in stop_words] # remove english stop words
     # ignore very long texts that mention BotEnrichr
     if len(tokens) > 8:
-      message = "If you would like me to post information about a specific gene, simply type:\n@BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3"
+      message = "If you would like me to post information about a specific gene, simply type:\n@BotEnrichr <gene symbol> please.\nFor example: @BotEnrichr KCNS3 please"
       Tweet(message,[],tweet_id)
       return True
     sim = []
@@ -155,7 +154,7 @@ class MyStreamListener(tweepy.StreamListener):
         archs4_link = 'https://amp.pharm.mssm.edu/archs4/gene/' + gene
         pharos_link = 'https://pharos.nih.gov/targets/' + gene
         screenshots = CreateTweet(geneshot_link,harmonizome_link,archs4_link,pharos_link)
-        message ="Explore prior knowledge & functional predictions for {} using:\n{}\n{}\n{}\n{}\n{}"
+        message ="Explore prior knowledge & functional predictions for {} using:\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}"
         message = message.format(gene.upper(),archs4_link,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
         break
       except ValueError:
@@ -164,15 +163,15 @@ class MyStreamListener(tweepy.StreamListener):
         sim.append( ",".join(difflib.get_close_matches(token, list_of_genes,n=1) ) )
     if (index_value==-1):
       if not isListEmpty(synon):
-        message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(synon[0][0],synon[0][0])
+        message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol> please.\nFor example: @BotEnrichr {} please".format(synon[0][0],synon[0][0])
       else:
         if len(sim)>0:
           sim = list(set(sim))
           sim = [x.upper() for x in sim]
           sim = list(filter(None, sim))
-          message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr {}".format(" or ".join(sim), max(sim, key=len))
+          message = "I'm confused. Did you mean {}?\nPlease reply: @BotEnrichr <gene symbol> please.\nFor example: @BotEnrichr {} please".format(" or ".join(sim), max(sim, key=len))
         else:
-          message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol>.\nFor example: @BotEnrichr KCNS3'
+          message = 'Interested in gene information?\nSimply type: @BotEnrichr <gene symbol> please.\nFor example: @BotEnrichr KCNS3 please'
     Tweet(message,screenshots,tweet_id)
     return True
   #
