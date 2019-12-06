@@ -108,11 +108,11 @@ def main_random_tweet():
   # Construct the tweet
   if screenshots[1] is None:
     screenshots = [i for i in screenshots if i]
-    message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG resources:\n{}\n{}\n{}\n{}"
+    message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG resources:\n\n{}\n\n{}\n\n{}\n\n{}"
     message = message.format(df[df.Gene==gene].iloc[0][1],gene,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
     # Send the tweet with photos
   else:
-    message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG resources:\n{}\n{}\n{}\n{}\n{}"
+    message ="Explore prior knowledge & functional predictions for the understudied {} {} using #IDG resources:\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}"
     message = message.format(df[df.Gene==gene].iloc[0][1],gene,archs4_link,harmonizome_link,geneshot_link,pharos_link,"@MaayanLab @DruggableGenome @IDG_Pharos @BD2KLINCSDCIC")
   
   # Send the tweet with photos
