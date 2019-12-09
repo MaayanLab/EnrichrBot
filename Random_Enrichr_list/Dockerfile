@@ -13,8 +13,10 @@ RUN set -x \
   && curl https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /chrome.deb \
   && dpkg -i /chrome.deb || apt-get install -yf \
   && rm /chrome.deb \
-  && echo "Installing chrome webdriver..." \
-  && curl https://chromedriver.storage.googleapis.com/76.0.3809.68/chromedriver_linux64.zip | bsdtar -xvf - -C /usr/local/bin \
+  && echo "Identifiyig compatible chrome webdriver version..." \
+  && VERSION=$(curl $(apt list google-chrome-stable | awk '/^google-chrome-stable/{print "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_"substr($2, 0, index($2, ".")) }')) \
+  && echo "Installing chrome webdriver ${VERSION}..." \
+  && curl "https://chromedriver.storage.googleapis.com/${VERSION}/chromedriver_linux64.zip" | bsdtar -xvf - -C /usr/local/bin \
   && chmod +x /usr/local/bin/chromedriver
 
 ADD requirements.txt /app/requirements.txt
