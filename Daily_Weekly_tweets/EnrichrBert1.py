@@ -49,6 +49,8 @@ def getdata(dataDic,field):
   tmp=""
   for d in dataDic: tmp=tmp+","+str(d[field])
   return(tmp[1:])
+  
+
 #---------------------- End Help Function ---------------------
 
 # Combine tweets into one csv file
@@ -122,7 +124,7 @@ for file in filesnames:
     'tweet_created_at':data[10],'hashtags':data[11],'mentions_id':data[12],'mentions_screeName':data[13],
     'retweet_to_id':data[14], 'org_tweet_id':data[15],'tweet_type':data[16], 'GeneSymbol': file,
     })
- 
+ #
   if flag:
     df.to_csv(os.path.join(PTH,"tweets",FOLDER,"full_data.csv.gz"), mode='a', header=True, compression='gzip', index=False)
     flag = False
@@ -147,6 +149,7 @@ df = df[df['tweet_type']=='TW']
 # drop duplicate tweets, based on tweet_id
 df = df.drop_duplicates(subset='tweet_id', keep="first")
 df['index_col'] = df.index
+
 df.to_csv(path1, index=False, header=True, compression='gzip')
 
 # Creating test dataframe according to BERT format
