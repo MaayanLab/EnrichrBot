@@ -8,5 +8,3 @@ snps_to_genes/.pybiomart.sqlite
 *.sqlite
 .DS_Store
 Reply_to_GWASbot/file
-.DS_Store
-.DS_Store

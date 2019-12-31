@@ -2,7 +2,7 @@ version: '3'
 services:
   enrichrbotbert2:
     build: .
-    image: maayanlab/enrichrbotbert2:1.1.3
+    image: maayanlab/enrichrbotbert2:1.2.4
     env_file: .env
     volumes:
       - ./output:/app/output
