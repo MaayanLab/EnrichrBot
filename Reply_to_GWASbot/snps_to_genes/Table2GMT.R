@@ -65,8 +65,9 @@ g<-graph_from_data_frame(edges,directed = TRUE)
 gmt<-as_adj_list(g)
 
 
-for (i in 1:length(unique(edges$gwas_name))){
+for (i in 1:length(unique(edges$diseaseId))){
   n<-names(gmt)[i]
+  print(i)
   str1 = paste(names(gmt[[i]]), collapse='\t' )
   write(paste(n,str1, sep="\t"),file="/users/alon/desktop/myfile_R.gmt",append=TRUE)
 }
