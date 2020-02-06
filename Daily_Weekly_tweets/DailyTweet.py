@@ -10,6 +10,7 @@ import sys
 import time
 import datetime
 import tweepy
+from bs4 import BeautifulSoup 
 load_dotenv(verbose=True)
  
 # get environment vars from .env
@@ -23,6 +24,17 @@ CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True)
+
+
+def is_empty_content(link):
+  resp=requests.get(link) 
+  if resp.status_code==200: 
+    soup = BeautifulSoup(resp.text,'html.parser') 
+    data = soup.find("div",{"id":"missing information"})
+  else: 
+    print("Error ARCHS4 website is down")
+  return(data is not None)
+
 
 def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
   print('Initializing selenium...')
@@ -40,6 +52,9 @@ def init_selenium(CHROMEDRIVER_PATH, windowSize='1080,1080'):
 #This goes to a link and takes a screenshot
 def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
   print('Capturing screenshot...')
+  if 'archs4' in link:
+    if is_empty_content(link):
+      return None
   time.sleep(2)
   browser.get(link)
   time.sleep(5)
@@ -66,9 +81,18 @@ def tweet(gene, tweet_id):
     link_to_screenshot( link=geneshot_link, output=os.path.join(PTH, "screenshots", "gsht.png"), browser=browser, zoom='0.75'),
   ]
   browser.quit()
-  message = "Explore prior knowledge & functional predictions for {} with @MaayanLab #Bioinformatics tools.\n\n{}\n\n{}\n\n{}\n\n{}"
-  message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@DruggableGenome @BD2KLINCSDCIC")
-  message = message + '\nInterested in another gene? Simply type: @BotEnrichr <gene symbol> please'
+  
+  # Construct the tweet
+  if screenshots[1] is None:
+    screenshots = [i for i in screenshots if i]
+    message = "Explore prior knowledge & functional predictions for {} with @MaayanLab #Bioinformatics tools.\n\n{}\n\n{}\n\n{}"
+    message = message.format(gene,geneshot_link,harmonizome_link,"@DruggableGenome @BD2KLINCSDCIC")
+    message = message + '\nInterested in another gene? Simply type: @BotEnrichr <gene symbol> please'
+    # Send the tweet with photos
+  else:
+    message = "Explore prior knowledge & functional predictions for {} with @MaayanLab #Bioinformatics tools.\n\n{}\n\n{}\n\n{}\n\n{}"
+    message = message.format(gene,geneshot_link,harmonizome_link,archs4_link,"@DruggableGenome @BD2KLINCSDCIC")
+    message = message + '\nInterested in another gene? Simply type: @BotEnrichr <gene symbol> please'
   # Send the tweet with photos
   ps = [api.media_upload(screenshot) for screenshot in screenshots]
   media_ids = [p.media_id_string for p in ps]
