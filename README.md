@@ -13,7 +13,7 @@
 <b>- Folder: /random_Enrichr_list <br><br>
     * [TASK4]</b> Daily, EnrichrBot randomly selects an annotated gene set from the Enrichr database and tweets a screenshot of analysis of the list with Enrichr, as well as a link to analyze the list with Enrichr.
       <br><br>     
-<b>- Folder: /daily_and_weekly_tweets<br><br>
+<b>- Folder: /Daily_Weekly_tweets<br><br>
     * [TASK5]</b> Daily: EnrichrBot listens to thousands of daily tweets searching for mentions of genes. At the end of the day, EnrichrBot picks a tweet that has high confidence score to discuss a human gene. It then add a comment to tweet with information about the gene. The tweet contains links to Harmonizome, ARCHS4, Pharos, and Geneshot providing places to explore more information about the gene, including predictions about the gene functions and associated human phenotypes.
      <br><br> 
 <b>* [TASK6]</b> Weekly: EnrichrBot listens to thousands of tweets everyday, searching for mentions of genes in tweets. At the end of each week, EnrichrBot tweets a report about the genes that were discussed on Twitter. The report contains a gene-gene network where genes are connected based on co-mentions, and barplot that lists to most tweeted genes for that week, and a link to Enrichr for performing enrichment analysis of the list of idenitified genes.
