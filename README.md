@@ -1,7 +1,7 @@
 # EnrichrBot
 
 <h3>EnrichrBot performs six tasks, each task is scheduled as a cron job.</h3>
-<b>- Folder: /random_IDG_gene: <br><br>
+<b>- Folder: /Random_IDG_gene: <br><br>
     * [TASK1]</b> Daily, EnrichrBot randomly selects a gene symbol from the list of >300 Illuminating the Druggable Genome (IDG) NIH Common Fund program gene of interest. It then tweets screenshots and links to Harmonizome, ARCHS4, Pharos, and Geneshot providing means to explore more information about the potential target, including predictions about the target functions and associated human phenotypes.
    <ul><li> This function also facilitates an automatic follow back to followers. </li></ul>
 <b>- Folder: /Talk_Back <br><br>
