@@ -7,7 +7,7 @@
 <b>- Folder: /Talk_Back <br><br>
     * [TASK2]</b> EnrichrBot listens to tweets mentioning '@BotEnrichr'. If the tweet contains a gene, EnrichrBot replies with screenshots and links to Harmonizome, ARCHS4, Pharos, and Geneshot providing means to explore more information about the potential target, including predictions about the target functions and associated human phenotypes.
  <br><br>
-<b>- Folder: /reply_to_GWASbot <br><br>
+<b>- Folder: /Reply_to_GWASbot <br><br>
     * [TASK3]</b> EnrichrBot listens to the daily tweet of GWASbot. GWASbot posts a Manhattan plot and link to called variants file created from a GWAS conducted on the UK Biobank by the Neale Lab. EnrichrBot processes the called variants file to associate variants with genes. It then submits the list of identified genes for analysis with Enrichr. The EnrichrBot tweet contains a link to the analysis of the gene set with Enrichr and a screenshot from such analysis.
      <br><br>
 <b>- Folder: /random_Enrichr_list <br><br>
