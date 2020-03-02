@@ -9,6 +9,8 @@ import requests
 import sys
 import time
 import tweepy
+import urllib.request
+import ast
 from bs4 import BeautifulSoup 
 load_dotenv()
 
@@ -70,8 +72,13 @@ def sample_rows(filename, s=1):
   
 def main_random_lncRNA():
   # read random gene list
-  lnc_go_bioprocess = sample_rows(os.path.join(PTH,'data/lnc_GO_Biological_Process.tsv'),1)
-  lnc_link = 'https://amp.pharm.mssm.edu/archs4/gene/' + lnc_go_bioprocess
+  fp = urllib.request.urlopen("https://amp.pharm.mssm.edu/lnchub/api/listlnc")
+  mybytes = fp.read()
+  lncRNA = mybytes.decode("utf8")
+  fp.close()
+  lncRNA = ast.literal_eval(lncRNA) 
+  lncRNA = random.choice(lncRNA)
+  lnc_link = 'https://amp.pharm.mssm.edu/lnchub/?lnc=' + lncRNA
   # init browser
   browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1600,1200')
   # create and save screenshots
