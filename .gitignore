@@ -6,5 +6,5 @@ venv
 enrichrbot/TwitterBert1.zip
 snps_to_genes/.pybiomart.sqlite
 *.sqlite
-.DS_Store
+*.DS_Store
 Reply_to_GWASbot/file
