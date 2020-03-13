@@ -11,8 +11,14 @@ import time
 import datetime
 import tweepy
 from bs4 import BeautifulSoup 
+
+# only tweet on Fri, Sun, Tue, Thu
+if datetime.datetime.today().weekday() not in [4,6,1,3]:
+  return()
+
+
 load_dotenv(verbose=True)
- 
+
 # get environment vars from .env
 PTH = os.environ.get('PTH') # PTH="/home/maayanlab/enrichrbot/" # PTH = '/users/alon/desktop/enrichrbot/'
 CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
@@ -81,7 +87,6 @@ def tweet(gene, tweet_id):
     link_to_screenshot( link=geneshot_link, output=os.path.join(PTH, "screenshots", "gsht.png"), browser=browser, zoom='0.75'),
   ]
   browser.quit()
-  
   # Construct the tweet
   if screenshots[1] is None:
     screenshots = [i for i in screenshots if i]
@@ -104,6 +109,7 @@ def tweet(gene, tweet_id):
     except Exception as e:
       print(e)
 
+
 def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
   last_tweets = api.user_timeline(screen_name = 'botenrichr', count = 100, include_rts = True)
   for tweet in last_tweets:
@@ -113,13 +119,11 @@ def did_we_replied(df_dat): # check if Enrichrbot already replied to that tweet
         df_dat = df_dat[df_dat.tweet_id != data['in_reply_to_status_id_str']]
   return(df_dat)
 
+
 def priority(data_frame):
   rare_genes = pd.read_csv(os.path.join(PTH,'data/autorif_gene_cout.csv'),dtype=str) # lower quintile or zero publications in AutoRIF.
-  data_frame = pd.merge(data_frame, rare_genes, on='GeneSymbol', how='left')
-  data_frame = data_frame.fillna(0) # a rare gene that is not in GeneRIF will get a zero score and will be prioritize
-  data_frame['count'] = data_frame['count'].astype(int)
-  data_frame = data_frame.sort_values(by=['count'],ascending=True) # sort asc
-  data_frame = data_frame.reset_index(drop=True)
+  rare_genes = rare_genes[rare_genes['count'].astype(int)<11]['GeneSymbol'].tolist() # keep only genes with max 10 publications
+  data_frame = data_frame[data_frame['GeneSymbol'].isin(rare_genes)]
   return(data_frame)
 
 
@@ -145,6 +149,7 @@ def like_retweet_follow(tweetid):
   except Exception as e:
     print("Error on following", e)
 
+
 # post a reply to each tweet that was found
 def main_tweet():
   df = pd.read_csv(os.path.join(PTH,"output","ReplyGenes.csv"),dtype=str)
@@ -160,7 +165,8 @@ def main_tweet():
   df = did_we_replied(df) # prevent reply to tweets that Enrichrbot replied before
   df = priority(df) # rank tweets such that rare genes will be tweeted first
   reply_counter = 0
-  for tweet_id in df['tweet_id']:
+  for tweet_id in range(len(df)):
+    tweet_id = df.iloc[i]['tweet_id']
     if reply_counter > 1:  # tweet up to 2 replies 
       break
     else:
@@ -171,11 +177,15 @@ def main_tweet():
         like_retweet_follow(tweet_id)
         tweet(gene, tweet_id)
         time.sleep(10)
-  # delete screenshots from folder     
-  os.remove(os.path.join(PTH, "screenshots", "gsht.png"))
-  os.remove(os.path.join(PTH, "screenshots", "archs4.png"))
-  os.remove(os.path.join(PTH, "screenshots", "harmo.png"))
-  print("deleted daily screenshots: gsht.png, archs4.png, harmo.png", str(datetime.datetime.now()))
+  # delete screenshots from folder
+  try:
+    os.remove(os.path.join(PTH, "screenshots", "gsht.png"))
+    os.remove(os.path.join(PTH, "screenshots", "archs4.png"))
+    os.remove(os.path.join(PTH, "screenshots", "harmo.png"))
+    print("deleted daily screenshots: gsht.png, archs4.png, harmo.png", str(datetime.datetime.now()))
+  except:
+    print("can't delete screenshots")
+
 
 if __name__ == '__main__':
   main_tweet()
