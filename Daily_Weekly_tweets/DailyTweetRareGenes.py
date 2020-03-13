@@ -11,6 +11,7 @@ import time
 import tweepy
 import urllib.request
 import ast
+import datetime
 from bs4 import BeautifulSoup 
 load_dotenv()
 
@@ -93,6 +94,5 @@ def main_random_lncRNA():
 
 if __name__ == '__main__':
   # only tweet on Mon, Wed, Sat
-  if datetime.datetime.today().weekday() not in [0,2,5]:
-    return()
-  main_random_lncRNA()
+  if datetime.datetime.today().weekday() in [0,2,5]:
+    main_random_lncRNA()
