@@ -11,12 +11,6 @@ import time
 import datetime
 import tweepy
 from bs4 import BeautifulSoup 
-
-# only tweet on Fri, Sun, Tue, Thu
-if datetime.datetime.today().weekday() not in [4,6,1,3]:
-  return()
-
-
 load_dotenv(verbose=True)
 
 # get environment vars from .env
@@ -190,4 +184,6 @@ def main_tweet():
 
 
 if __name__ == '__main__':
-  main_tweet()
+  # only tweet on Fri, Sun, Tue, Thu
+  if datetime.datetime.today().weekday() in [4,6,1,3]: # it is important to tweet on day 4 (Fri) for the rest of the scripts on enrichrbotbert1_daily.sh
+    main_tweet()
