@@ -73,8 +73,8 @@ def main_random_lncRNA():
     return
     # Send the tweet with photos
   else:
-    message ="Explore prior knowledge & functional predictions for the understudied lncRNA {} with {} using #recount2 resource.\n\n{}"
-    message = message.format(lncRNA,"@MaayanLab",lnc_link)
+    message = "Explore functional predictions for the lncRNA {} with #lncHUB, a tool developed by the @MaayanLab for the @DruggableGenome @BD2KLINCSDCIC projects:\n{}"
+    message = message.format(lncRNA,lnc_link)
   # Send the tweet with photos
   auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
   auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
@@ -92,4 +92,7 @@ def main_random_lncRNA():
     print("failed to delete screenshot")
 
 if __name__ == '__main__':
+  # only tweet on Mon, Wed, Sat
+  if datetime.datetime.today().weekday() not in [0,2,5]:
+    return()
   main_random_lncRNA()
