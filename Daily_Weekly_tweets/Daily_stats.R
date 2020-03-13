@@ -17,6 +17,7 @@ library(data.table)
 library(dotenv)
 
 #PTH = '/app/' # PTH ='/home/maayanlab/enrichrbot/'
+#load_dot_env(file = "/home/maayanlab/enrichrbot/.env")
 load_dot_env(file = "/app/.env")
 PTH = Sys.getenv("PTH")
 
@@ -25,7 +26,6 @@ FOLDER <- read_csv(paste0(PTH,"tweets/folder.txt"), col_names = FALSE)$X1
 filepath = paste0(PTH,'bert/data/bert_full_result_',FOLDER,'.csv') # path to BERT classification results
 
 bert_full_result <- read_csv(filepath,col_types = cols(tweet_id = col_character(), org_tweet_id = col_character() ))
-
 
 gene_Tweets<-bert_full_result[bert_full_result$Is_Response=='gene',] # keep only gene related tweets
 gene_Tweets<-gene_Tweets[!duplicated(gene_Tweets$tweet_id),]
@@ -77,28 +77,32 @@ ans<-foreach(i =1:nrow(gene_Tweets),.combine=rbind, .packages=c("tm", "slam")) %
   
   # convert tweets to vectors (remove english stop words) 
   doc_set <- c(tweet,description)
+  doc_set <- doc_set[!is.na(doc_set)]
   corpus <- Corpus(VectorSource(doc_set))
   corpus <- tm_map(corpus, removeWords, stopwords("english"))
   corpus <- tm_map(corpus, stripWhitespace)
   
   # create term document matrix
   tdm <- TermDocumentMatrix(corpus, control = list(removePunctuation = TRUE))
-  
-  # calc cosine similarity between the tweet and the gene description
-  cosine_sim_mat <- crossprod_simple_triplet_matrix(tdm)/(sqrt(col_sums(tdm^2) %*% t(col_sums(tdm^2))))
-  
-  # does the exact gene symbol apears in the tweet?
-  gene_with_space <- paste0('\\b',gene_Tweets[i,]$GeneSymbol,'\\b') 
-  flag <- grepl(gene_with_space, doc_set[1],ignore.case = TRUE)
-  
-  res <- data.frame(cosim=cosine_sim_mat[1,2],
-                    gene_in_text = flag,
-                    GeneSymbol = gene_Tweets[i,]$GeneSymbol,
-                    tweet_id = gene_Tweets[i,]$tweet_id,
-                    text_clean = doc_set[1],
-                    user_id = gene_Tweets[i,]$user_id,
-                    org_tweet_id = gene_Tweets[i,]$org_tweet_id )
-  
+  if((dim(tdm)==0)[1]){
+    res<-data.frame(0)
+  }else{
+    
+    # calc cosine similarity between the tweet and the gene description
+    cosine_sim_mat <- crossprod_simple_triplet_matrix(tdm)/(sqrt(col_sums(tdm^2) %*% t(col_sums(tdm^2))))
+    
+    # does the exact gene symbol apears in the tweet?
+    gene_with_space <- paste0('\\b',gene_Tweets[i,]$GeneSymbol,'\\b') 
+    flag <- grepl(gene_with_space, doc_set[1],ignore.case = TRUE)
+    
+    res <- data.frame(cosim=cosine_sim_mat[1,2],
+                      gene_in_text = flag,
+                      GeneSymbol = gene_Tweets[i,]$GeneSymbol,
+                      tweet_id = gene_Tweets[i,]$tweet_id,
+                      text_clean = doc_set[1],
+                      user_id = gene_Tweets[i,]$user_id,
+                      org_tweet_id = gene_Tweets[i,]$org_tweet_id )
+  }
   return(res)
 }
 
@@ -128,4 +132,10 @@ ReplyGenes<-ReplyGenes[!duplicated(ReplyGenes$text_clean),]
 ReplyGenes<-ReplyGenes[str_length(ReplyGenes$GeneSymbol)>3,]
 ReplyGenes<-ReplyGenes[! ReplyGenes$org_tweet_id %in% ReplyGenes$tweet_id, ] # delete retweets if the org tweet is present
 
-write.csv(ReplyGenes,file=paste0(PTH,'output/ReplyGenes.csv'),row.names = FALSE)
+if( file.exists(paste0(PTH,'output/ReplyGenes.csv')) ){
+  write.table(ReplyGenes, file=paste0(PTH,'output/ReplyGenes.csv'), sep = ",", col.names = !file.exists(paste0(PTH,'output/ReplyGenes.csv')), append = T,row.names = FALSE)
+}else{
+  write.csv(ReplyGenes,file=paste0(PTH,'output/ReplyGenes.csv'),row.names = FALSE)
+}
+
+
