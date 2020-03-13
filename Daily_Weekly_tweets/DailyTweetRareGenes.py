@@ -16,7 +16,8 @@ from bs4 import BeautifulSoup
 load_dotenv()
 
 # get environment vars from .env
-PTH = os.environ.get('PTH')
+#PTH = os.environ.get('PTH')
+PTH = '/home/maayanlab/enrichrbot'
 CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
 ACCESS_TOKEN = os.environ.get('ACCESS_TOKEN')
 ACCESS_TOKEN_SECRET = os.environ.get('ACCESS_TOKEN_SECRET')
@@ -59,7 +60,7 @@ def main_random_lncRNA():
   lncRNA = mybytes.decode("utf8")
   fp.close()
   lncRNA = ast.literal_eval(lncRNA) 
-  lncRNA = random.choice(lncRNA)
+  lncRNA = random.choice(lncRNA['lnc'])
   lnc_link = 'https://amp.pharm.mssm.edu/lnchub/?lnc=' + lncRNA
   # init browser
   browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1100,1000')
