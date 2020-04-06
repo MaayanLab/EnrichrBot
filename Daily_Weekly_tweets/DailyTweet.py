@@ -159,7 +159,7 @@ def main_tweet():
   df = did_we_replied(df) # prevent reply to tweets that Enrichrbot replied before
   df = priority(df) # tweets only rare genes
   reply_counter = 0
-  for tweet_id in range(len(df)):
+  for i in range(len(df)):
     tweet_id = df.iloc[i]['tweet_id']
     if reply_counter > 1:  # tweet up to 2 replies 
       break
@@ -170,7 +170,7 @@ def main_tweet():
         # like and retweet this tweet
         like_retweet_follow(tweet_id)
         tweet(gene, tweet_id)
-        df = df[df['tweet_id']!=tweet_id]
+        df = df[df['tweet_id']!=tweet_id] # remove tweet that we tweeted
         df.to_csv(os.path.join(PTH,"output","ReplyGenes.csv"),index=False)
         time.sleep(10)
   # delete screenshots from folder
