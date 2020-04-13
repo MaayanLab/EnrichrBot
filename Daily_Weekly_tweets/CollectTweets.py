@@ -84,7 +84,7 @@ def Func2(i,dat,api,writepath):
 df = pd.read_csv( os.path.join(PTH,"Homo_sapiens.tsv"), sep='\t') # read gene file
 
 # collecting tweets in parallel
-Number_of_apps=149
+Number_of_apps= os.environ.get('apps')
 x=math.ceil(len(df['Symbol'])/Number_of_apps)
 threads = []
 
