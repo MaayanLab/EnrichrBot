@@ -31,7 +31,7 @@ ENV CONSUMER_KEY=
 ENV CONSUMER_SECRET=
 ENV ACCESS_TOKEN=
 ENV ACCESS_TOKEN_SECRET=
-ENV ENRICHR_URL=https://amp.pharm.mssm.edu/Enrichr
+ENV ENRICHR_URL=https://maayanlab.cloud/Enrichr
 ENV CHROME_PATH=/opt/google/chrome/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 ADD .env.example /app/.env.example

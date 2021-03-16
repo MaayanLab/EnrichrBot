@@ -52,7 +52,7 @@ def submit_to_enrichr(geneset=[], description=''):
       'list': (None, genes_str),
       'description': (None, description)
   }
-  ENRICHR_URL =  'https://amp.pharm.mssm.edu/Enrichr'
+  ENRICHR_URL =  'https://maayanlab.cloud/Enrichr'
   response = requests.post(ENRICHR_URL + '/addList', files=payload)
   if not response.ok:
       raise Exception('Error analyzing gene list')

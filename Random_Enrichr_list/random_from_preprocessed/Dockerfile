@@ -14,7 +14,7 @@ ENV ACCESS_TOKEN_SECRET=
 ENV TWEET_STORAGE_PATH=/data/tweets/
 ENV LOOKUP_GMT=/data/ukbiobank1.gmt
 ENV LOOKUP_RESULTS=/data/results/results.tsv
-ENV ENRICHR_URL=https://amp.pharm.mssm.edu/Enrichr
+ENV ENRICHR_URL=https://maayanlab.cloud/Enrichr
 
 VOLUME [ "/data" ]
 

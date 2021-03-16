@@ -15,8 +15,8 @@ import json
 load_dotenv(verbose=True)
 
 WEEK = str(sys.argv[1])
-GENESHOT_URL = 'https://amp.pharm.mssm.edu/geneshot/geneset.html?genelist='
-ENRICHR_URL =  'https://amp.pharm.mssm.edu/Enrichr'
+GENESHOT_URL = 'https://maayanlab.cloud/geneshot/geneset.html?genelist='
+ENRICHR_URL =  'https://maayanlab.cloud/Enrichr'
 CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver')
 PTH = os.environ.get('PTH') # PTH = '/home/maayanlab/enrichrbot/' # PTH = '/users/alon/desktop/enrichrbot/'
 
@@ -46,7 +46,7 @@ def submit_to_geneshot(geneset=[]):
   # options:
     #rif:         generif/autorif (better use autorif)
     #similarity:  autorif/generif/enrichr/tagger/coexpression
-    #https://amp.pharm.mssm.edu/geneshot/geneset.html?genelist=SOX2,TP53,RB1&rif=generif&similarity=tagger
+    #https://maayanlab.cloud/geneshot/geneset.html?genelist=SOX2,TP53,RB1&rif=generif&similarity=tagger
   genes_str = ','.join(str(v) for v in geneset)
   geneshot_link = GENESHOT_URL + genes_str + '&rif=autorif&similarity=tagger'
   f = open(os.path.join(PTH,"screenshots/geneshot_link.txt"), "w")
@@ -86,7 +86,7 @@ def get_screenshot_enrichr(link=None, output=None, zoom='100 %', browser=None):
   
 def get_screenshot_geneshot(genes, output=None, zoom='100 %', browser=None):
   browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1500,1200')
-  browser.get("https://amp.pharm.mssm.edu/geneshot/geneset.html")
+  browser.get("https://maayanlab.cloud/geneshot/geneset.html")
   inputElement = browser.find_element_by_id("usergeneset") # get geneshot textbox
   data = ','.join(genes)
   inputElement.send_keys(data)

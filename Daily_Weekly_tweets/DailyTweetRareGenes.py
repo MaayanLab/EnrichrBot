@@ -55,13 +55,13 @@ def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
   
 def main_random_lncRNA():
   # read random gene list
-  fp = urllib.request.urlopen("https://amp.pharm.mssm.edu/lnchub/api/listlnc")
+  fp = urllib.request.urlopen("https://maayanlab.cloud/lnchub/api/listlnc")
   mybytes = fp.read()
   lncRNA = mybytes.decode("utf8")
   fp.close()
   lncRNA = ast.literal_eval(lncRNA) 
   lncRNA = random.choice(lncRNA['lnc'])
-  lnc_link = 'https://amp.pharm.mssm.edu/lnchub/?lnc=' + lncRNA
+  lnc_link = 'https://maayanlab.cloud/lnchub/?lnc=' + lncRNA
   # init browser
   browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1100,1000')
   # create and save screenshots

@@ -82,10 +82,10 @@ def main_random_tweet():
   df.loc[df['Gene']==gene,'tweeted'] = epoch_time
   df.to_csv(PTH_TO_IDGLIST,index=False)
   # create links
-  harmonizome_link = 'http://amp.pharm.mssm.edu/Harmonizome/gene/' + gene
-  archs4_link = 'https://amp.pharm.mssm.edu/archs4/gene/' + gene
+  harmonizome_link = 'http://maayanlab.cloud/Harmonizome/gene/' + gene
+  archs4_link = 'https://maayanlab.cloud/archs4/gene/' + gene
   db = random.choice(['autorif','generif'])
-  geneshot_link = "https://amp.pharm.mssm.edu/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
+  geneshot_link = "https://maayanlab.cloud/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
   pharos_link = 'https://pharos.nih.gov/targets/' + gene
   
   # init browser

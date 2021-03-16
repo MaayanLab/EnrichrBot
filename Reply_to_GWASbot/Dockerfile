@@ -26,7 +26,7 @@ RUN set -x \
   
 ENV CHROME_PATH=/opt/google/chrome/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
-ENV ENRICHR_URL=https://amp.pharm.mssm.edu/Enrichr
+ENV ENRICHR_URL=https://maayanlab.cloud/Enrichr
 
 RUN set -x \
   && chmod +x /app/entrypoint.sh

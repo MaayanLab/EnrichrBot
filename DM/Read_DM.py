@@ -98,9 +98,9 @@ def Tweet(message, screenshots, tweet_id):
 def reply_to_tweet(text, tweet_id):
   gene = text[0].upper()
   db = random.choice(['autorif','generif'])
-  geneshot_link = "https://amp.pharm.mssm.edu/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
-  harmonizome_link = 'http://amp.pharm.mssm.edu/Harmonizome/gene/' + gene
-  archs4_link = 'https://amp.pharm.mssm.edu/archs4/gene/' + gene
+  geneshot_link = "https://maayanlab.cloud/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
+  harmonizome_link = 'http://maayanlab.cloud/Harmonizome/gene/' + gene
+  archs4_link = 'https://maayanlab.cloud/archs4/gene/' + gene
   pharos_link = 'https://pharos.nih.gov/targets/' + gene
   screenshots = CreateTweet(geneshot_link,harmonizome_link,archs4_link,pharos_link)
   message ="Explore prior knowledge & functional predictions for {} using:\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}"

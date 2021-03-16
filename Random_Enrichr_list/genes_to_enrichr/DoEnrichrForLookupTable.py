@@ -5,7 +5,7 @@ load_dotenv()
 
 WEBDRIVER_PATH = os.environ.get('WEBDRIVER_PATH', '/usr/local/bin/chromedriver')
 LOOKUP_GMT = os.environ['LOOKUP_GMT']
-ENRICHR_URL = os.environ.get('ENRICHR_URL', 'https://amp.pharm.mssm.edu/Enrichr')
+ENRICHR_URL = os.environ.get('ENRICHR_URL', 'https://maayanlab.cloud/Enrichr')
 
 #############################################################################################
 # Submit the genelist to enrichr to get a link

@@ -149,9 +149,9 @@ class MyStreamListener(tweepy.StreamListener):
         index_value = list_of_genes.index(token) # find the gene symbol in text
         gene = token.upper()
         db = random.choice(['autorif','generif'])
-        geneshot_link = "https://amp.pharm.mssm.edu/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
-        harmonizome_link = 'http://amp.pharm.mssm.edu/Harmonizome/gene/' + gene
-        archs4_link = 'https://amp.pharm.mssm.edu/archs4/gene/' + gene
+        geneshot_link = "https://maayanlab.cloud/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
+        harmonizome_link = 'http://maayanlab.cloud/Harmonizome/gene/' + gene
+        archs4_link = 'https://maayanlab.cloud/archs4/gene/' + gene
         pharos_link = 'https://pharos.nih.gov/targets/' + gene
         screenshots = CreateTweet(geneshot_link,harmonizome_link,archs4_link,pharos_link)
         message ="Explore prior knowledge & functional predictions for {} using:\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}"

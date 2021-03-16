@@ -19,7 +19,7 @@
 <b>* [TASK6]</b> Weekly: EnrichrBot listens to thousands of tweets everyday, searching for mentions of genes in tweets. At the end of each week, EnrichrBot tweets a report about the genes that were discussed on Twitter. The report contains a gene-gene network where genes are connected based on co-mentions, and barplot that lists to most tweeted genes for that week, and a link to Enrichr for performing enrichment analysis of the list of idenitified genes.
       <br><br> 
 
-<b>* [TASK7]</b> Daily: EnrichrBot randomly selects one of 4,289 lncRNAs profiled by recount2 TCGA gene expression and predicts three functions of lncRNA: 1) KEGG pathways membership; 2) GO biological processes; and 3) MGI mammalian. Gene-gene similarity matrices are calculated using gene coexpression from recount2 and associations. EnrichrBot tweets the top prediction for each of the three functions with a link to the full prediction matrices available at the website lncHUB: https://amp.pharm.mssm.edu/lnchub.
+<b>* [TASK7]</b> Daily: EnrichrBot randomly selects one of 4,289 lncRNAs profiled by recount2 TCGA gene expression and predicts three functions of lncRNA: 1) KEGG pathways membership; 2) GO biological processes; and 3) MGI mammalian. Gene-gene similarity matrices are calculated using gene coexpression from recount2 and associations. EnrichrBot tweets the top prediction for each of the three functions with a link to the full prediction matrices available at the website lncHUB: https://maayanlab.cloud/lnchub.
 <br><br>
 
 ## Contact information

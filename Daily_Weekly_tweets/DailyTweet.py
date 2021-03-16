@@ -67,10 +67,10 @@ def link_to_screenshot(link=None, output=None, zoom='100 %', browser=None):
   
 def tweet(gene, tweet_id):
   # create links
-  harmonizome_link = 'http://amp.pharm.mssm.edu/Harmonizome/gene/' + gene
-  archs4_link = 'https://amp.pharm.mssm.edu/archs4/gene/' + gene
+  harmonizome_link = 'http://maayanlab.cloud/Harmonizome/gene/' + gene
+  archs4_link = 'https://maayanlab.cloud/archs4/gene/' + gene
   db = random.choice(['autorif','generif'])
-  geneshot_link = "https://amp.pharm.mssm.edu/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
+  geneshot_link = "https://maayanlab.cloud/geneshot/index.html?searchin=" + gene + "&searchnot=&rif=" + db
   pharos_link = 'https://pharos.nih.gov/targets/' + gene
   # init browser
   browser = init_selenium(CHROMEDRIVER_PATH, windowSize='1600,1200')
