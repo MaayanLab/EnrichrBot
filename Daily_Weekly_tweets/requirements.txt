@@ -11,6 +11,6 @@ tweepy==3.8.0
 requests-oauthlib==1.2.0
 selenium==3.141.0
 requests==2.20.0
-tensorflow-gpu==1.14.0
+tensorflow-gpu==2.12.0
 nltk==3.4.5
 beautifulsoup4==4.8.1
